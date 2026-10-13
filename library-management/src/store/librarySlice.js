@@ -297,6 +297,53 @@ export const librarySlice = createSlice({
     },
 
     /**
+     * Requirement b: Add a new book (POST CRUD)
+     */
+    addBook: (state, action) => {
+      const newBook = action.payload;
+      state.books.unshift(newBook);
+      state.operationFeedback = {
+        type: "success",
+        message: `Book "${newBook.title}" successfully added to library catalog!`
+      };
+    },
+
+    /**
+     * Requirement c: Update book information (PUT/PATCH CRUD)
+     */
+    updateBookInfo: (state, action) => {
+      const updated = action.payload;
+      const index = state.books.findIndex((b) => String(b.id) === String(updated.id));
+      if (index !== -1) {
+        state.books[index] = { ...state.books[index], ...updated };
+      }
+      // Also update in borrowedBooks if currently borrowed
+      const brwIndex = state.borrowedBooks.findIndex((b) => String(b.id) === String(updated.id));
+      if (brwIndex !== -1) {
+        state.borrowedBooks[brwIndex] = { ...state.borrowedBooks[brwIndex], ...updated };
+      }
+      state.operationFeedback = {
+        type: "success",
+        message: `Book "${updated.title}" successfully updated!`
+      };
+    },
+
+    /**
+     * Requirement d: Delete book (DELETE CRUD)
+     */
+    deleteBook: (state, action) => {
+      const bookId = typeof action.payload === "object" ? action.payload.id : action.payload;
+      const deletedBook = state.books.find((b) => String(b.id) === String(bookId));
+      state.books = state.books.filter((b) => String(b.id) !== String(bookId));
+      state.borrowedBooks = state.borrowedBooks.filter((b) => String(b.id) !== String(bookId));
+      state.holdRequests = state.holdRequests.filter((h) => String(h.bookId) !== String(bookId));
+      state.operationFeedback = {
+        type: "info",
+        message: `Book "${deletedBook?.title || bookId}" removed from library catalog.`
+      };
+    },
+
+    /**
      * Update individual book status
      */
     updateBookAvailability: (state, action) => {
@@ -383,6 +430,9 @@ export const {
   renewBook,
   placeHold,
   cancelHold,
+  addBook,
+  updateBookInfo,
+  deleteBook,
   updateBookAvailability,
   setSearch,
   setCategory,

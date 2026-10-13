@@ -3,22 +3,29 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLibrary } from "../context/LibraryContext";
 import { bookService } from "../services/bookService";
 import Loading from "./common/Loading";
+import BookFormModal from "./BookFormModal";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 /**
  * BookDetailPage Component
  * Dynamically fetches individual book details from the REST API endpoint (GET /api/books/:id).
- * Demonstrates async data fetching, dynamic loading states, and error recovery.
- * Satisfies Requirements c, d, e.
+ * Demonstrates async data fetching, dynamic loading states, error recovery,
+ * and full CRUD operations (GET, PUT/PATCH, DELETE).
+ * Satisfies Experiment 3 Requirements a, c, d, f.
  */
 function BookDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { borrowedBooks, holdRequests, member, apiEngine } = useLibrary();
+  const { borrowedBooks, holdRequests, member, apiEngine, updateBook, deleteBook } = useLibrary();
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusCode, setStatusCode] = useState(null);
+
+  // CRUD Modals State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Dynamic async fetch from REST API
   const fetchBookDetails = useCallback(async () => {
@@ -222,6 +229,26 @@ function BookDetailPage() {
             </button>
 
             <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setIsEditModalOpen(true)}
+              id="btn-edit-book-detail"
+              title="Edit this book via PUT /api/books/:id"
+            >
+              ✏️ Edit Book (PUT)
+            </button>
+
+            <button
+              type="button"
+              className="btn-danger"
+              onClick={() => setIsDeleteModalOpen(true)}
+              id="btn-delete-book-detail"
+              title="Delete this book via DELETE /api/books/:id"
+            >
+              🗑️ Delete Book (DELETE)
+            </button>
+
+            <button
               className="btn-secondary"
               onClick={fetchBookDetails}
               title="Refresh book from REST API"
@@ -231,6 +258,35 @@ function BookDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Book Modal (PUT/PATCH CRUD) */}
+      <BookFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        initialBook={book}
+        mode="edit"
+        onSubmit={async (payload) => {
+          const res = await updateBook(book.id, payload);
+          if (res?.book) {
+            setBook(res.book);
+          } else {
+            setBook((prev) => ({ ...prev, ...payload }));
+          }
+          setIsEditModalOpen(false);
+        }}
+      />
+
+      {/* Delete Book Confirmation Modal (DELETE CRUD) */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        book={book}
+        onConfirm={async (bookId) => {
+          await deleteBook(bookId);
+          setIsDeleteModalOpen(false);
+          navigate("/books");
+        }}
+      />
     </div>
   );
 }

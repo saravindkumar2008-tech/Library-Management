@@ -166,6 +166,37 @@ const mockRestApiPlugin = () => ({
         }));
       }
 
+      // POST /api/books (Add a new book - Requirement b)
+      if (req.method === 'POST' && pathname === '/api/books') {
+        let body = '';
+        req.on('data', (chunk: any) => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+            const maxId = SEED_BOOKS.reduce((max, b) => Math.max(max, Number(b.id) || 100), 100);
+            const newBook = {
+              id: maxId + 1,
+              title: data.title || "Untitled Book",
+              author: data.author || "Unknown Author",
+              category: data.category || "General Literature",
+              year: Number(data.year) || 2024,
+              available: data.available !== undefined ? Boolean(data.available) : true,
+              rating: Number(data.rating) || 4.5,
+              isbn: data.isbn || `978-818468${maxId + 1}`,
+              pages: Number(data.pages) || 350,
+              description: data.description || "A recently added literary addition."
+            };
+            SEED_BOOKS.unshift(newBook);
+            res.statusCode = 201;
+            return res.end(JSON.stringify({ success: true, message: "Book created successfully", book: newBook }));
+          } catch {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ success: false, error: "Invalid JSON payload" }));
+          }
+        });
+        return;
+      }
+
       // GET /api/books/:id
       const bookDetailMatch = pathname.match(/^\/api\/books\/([^/]+)$/);
       if (req.method === 'GET' && bookDetailMatch) {
@@ -177,6 +208,91 @@ const mockRestApiPlugin = () => ({
         }
         res.statusCode = 200;
         return res.end(JSON.stringify({ success: true, book }));
+      }
+
+      // PUT/PATCH /api/books/:id (Update book info - Requirement c)
+      if ((req.method === 'PUT' || req.method === 'PATCH') && bookDetailMatch) {
+        const id = bookDetailMatch[1];
+        let body = '';
+        req.on('data', (chunk: any) => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+            const index = SEED_BOOKS.findIndex((b) => String(b.id) === String(id) || String(b.id) === String(Number(id) - 100));
+            if (index === -1) {
+              res.statusCode = 404;
+              return res.end(JSON.stringify({ success: false, error: `Book #${id} not found` }));
+            }
+            SEED_BOOKS[index] = { ...SEED_BOOKS[index], ...data, id: SEED_BOOKS[index].id };
+            res.statusCode = 200;
+            return res.end(JSON.stringify({ success: true, message: "Book updated successfully", book: SEED_BOOKS[index] }));
+          } catch {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ success: false, error: "Invalid JSON" }));
+          }
+        });
+        return;
+      }
+
+      // DELETE /api/books/:id (Delete book - Requirement d)
+      if (req.method === 'DELETE' && bookDetailMatch) {
+        const id = bookDetailMatch[1];
+        const index = SEED_BOOKS.findIndex((b) => String(b.id) === String(id) || String(b.id) === String(Number(id) - 100));
+        if (index === -1) {
+          res.statusCode = 404;
+          return res.end(JSON.stringify({ success: false, error: `Book #${id} not found` }));
+        }
+        const deleted = SEED_BOOKS.splice(index, 1)[0];
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ success: true, message: `Book "${deleted.title}" deleted`, deletedId: deleted.id }));
+      }
+
+      // POST /api/borrowings (Create borrowing record - Requirement e)
+      if (req.method === 'POST' && pathname === '/api/borrowings') {
+        let body = '';
+        req.on('data', (chunk: any) => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+            const bookIndex = SEED_BOOKS.findIndex((b) => String(b.id) === String(data.bookId));
+            if (bookIndex !== -1) {
+              SEED_BOOKS[bookIndex].available = false;
+            }
+            res.statusCode = 201;
+            return res.end(JSON.stringify({
+              success: true,
+              message: "Borrowing record created",
+              borrowing: {
+                id: "BRW-" + Date.now(),
+                bookId: data.bookId,
+                borrowDate: new Date().toISOString().split('T')[0],
+                dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+                status: "active"
+              }
+            }));
+          } catch {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ success: false, error: "Invalid payload" }));
+          }
+        });
+        return;
+      }
+
+      // PATCH /api/borrowings/:id/return (Update borrowing record to returned - Requirement e)
+      const returnMatch = pathname.match(/^\/api\/borrowings\/([^/]+)\/return$/);
+      if ((req.method === 'PATCH' || req.method === 'POST') && returnMatch) {
+        const bookId = returnMatch[1];
+        const bk = SEED_BOOKS.find((b) => String(b.id) === String(bookId));
+        if (bk) bk.available = true;
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ success: true, message: "Book returned successfully" }));
+      }
+
+      // PATCH /api/borrowings/:id/renew (Update borrowing record to renewed - Requirement e)
+      const renewMatch = pathname.match(/^\/api\/borrowings\/([^/]+)\/renew$/);
+      if ((req.method === 'PATCH' || req.method === 'POST') && renewMatch) {
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ success: true, message: "Book renewed +7 days" }));
       }
 
       // GET /api/members/current

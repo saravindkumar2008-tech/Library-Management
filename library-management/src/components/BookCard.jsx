@@ -6,9 +6,10 @@ import BorrowButton from "./BorrowButton";
 
 /**
  * Reusable BookCard Component
- * Utilizes reusable Button, BookStatus, and BorrowButton components
+ * Utilizes reusable Button, BookStatus, and BorrowButton components.
+ * Includes Edit (PUT) and Delete (DELETE) CRUD action buttons.
  */
-export function BookCard({ book }) {
+export function BookCard({ book, onEdit, onDelete }) {
   const navigate = useNavigate();
   const isAvailable = book.available;
 
@@ -58,6 +59,32 @@ export function BookCard({ book }) {
           book={book}
           size="sm"
         />
+
+        {/* CRUD Action: Edit Book (PUT/PATCH) */}
+        {onEdit && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(book)}
+            title={`Edit ${book.title} (PUT/PATCH)`}
+            icon="✏️"
+          >
+            Edit
+          </Button>
+        )}
+
+        {/* CRUD Action: Delete Book (DELETE) */}
+        {onDelete && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => onDelete(book)}
+            title={`Delete ${book.title} (DELETE)`}
+            icon="🗑️"
+          >
+            Del
+          </Button>
+        )}
       </div>
     </div>
   );

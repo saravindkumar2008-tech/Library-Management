@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLibrary } from "../context/LibraryContext";
 import BookList from "./BookList";
 import SearchBar from "./SearchBar";
 import FilterPanel from "./FilterPanel";
 import Recommendations from "./Recommendations";
+import BookFormModal from "./BookFormModal";
 
 function Home() {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const {
     books,
     availableBooks,
@@ -22,7 +25,8 @@ function Home() {
     setSimulatedDelay,
     simulateError,
     setSimulateError,
-    refetchBooks
+    refetchBooks,
+    addBook
   } = useLibrary();
 
   return (
@@ -188,7 +192,16 @@ function Home() {
             {books.length} {books.length === 1 ? "book" : "books"} loaded via REST API
           </span>
         </div>
-        <div className="catalog-refresh-btn-wrap">
+        <div className="catalog-refresh-btn-wrap" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setIsAddModalOpen(true)}
+            id="btn-add-book-catalog"
+            title="Create a new book via POST /api/books"
+          >
+            ➕ Add New Book (POST API)
+          </button>
           <button className="btn-secondary" onClick={refetchBooks} title="Re-fetch catalog from REST API">
             🔄 Refresh Catalog
           </button>
@@ -197,6 +210,17 @@ function Home() {
 
       {/* Book List with Async Loading and Error States */}
       <BookList />
+
+      {/* Add New Book Modal (POST CRUD) */}
+      <BookFormModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        mode="create"
+        onSubmit={async (payload) => {
+          await addBook(payload);
+          setIsAddModalOpen(false);
+        }}
+      />
     </div>
   );
 }

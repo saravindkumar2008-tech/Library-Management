@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLibrary } from "../context/LibraryContext";
 import BookCard from "./BookCard";
 import Loading from "./common/Loading";
+import BookFormModal from "./BookFormModal";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 /**
  * BookList Component
  * Displays book catalog fetched asynchronously via REST API.
+ * Supports CRUD operations: Read (GET), Update (PUT/PATCH), and Delete (DELETE).
  * Handles loading spinners, error alerts with retry button, and empty search results.
- * Satisfies Requirements a, b, d, e.
+ * Satisfies Experiment 3 Requirements a, c, d, f.
  */
 function BookList() {
   const {
@@ -18,11 +21,17 @@ function BookList() {
     openBookDetail,
     borrowBook,
     placeHold,
+    updateBook,
+    deleteBook,
     resetFilters,
     apiEngine
   } = useLibrary();
 
-  // Loading State (Requirement e)
+  // CRUD Modals State
+  const [editingBook, setEditingBook] = useState(null);
+  const [deletingBook, setDeletingBook] = useState(null);
+
+  // Loading State (Requirement f)
   if (booksLoading) {
     return (
       <div className="book-list-loading-wrap">
@@ -44,7 +53,7 @@ function BookList() {
     );
   }
 
-  // Error State with Retry Button (Requirement e)
+  // Error State with Retry Button (Requirement f)
   if (booksError) {
     return (
       <div className="empty-box error-alert-box">
@@ -78,17 +87,44 @@ function BookList() {
   }
 
   return (
-    <div className="book-list">
-      {filteredBooks.map((book) => (
-        <BookCard
-          key={book.id}
-          book={book}
-          openBookDetail={openBookDetail}
-          borrowBook={borrowBook}
-          placeHold={placeHold}
-        />
-      ))}
-    </div>
+    <>
+      <div className="book-list">
+        {filteredBooks.map((book) => (
+          <BookCard
+            key={book.id}
+            book={book}
+            openBookDetail={openBookDetail}
+            borrowBook={borrowBook}
+            placeHold={placeHold}
+            onEdit={(b) => setEditingBook(b)}
+            onDelete={(b) => setDeletingBook(b)}
+          />
+        ))}
+      </div>
+
+      {/* Edit Book Modal (PUT/PATCH CRUD) */}
+      <BookFormModal
+        isOpen={Boolean(editingBook)}
+        onClose={() => setEditingBook(null)}
+        initialBook={editingBook}
+        mode="edit"
+        onSubmit={async (payload) => {
+          await updateBook(editingBook.id, payload);
+          setEditingBook(null);
+        }}
+      />
+
+      {/* Delete Book Confirmation Modal (DELETE CRUD) */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deletingBook)}
+        onClose={() => setDeletingBook(null)}
+        book={deletingBook}
+        onConfirm={async (id) => {
+          await deleteBook(id);
+          setDeletingBook(null);
+        }}
+      />
+    </>
   );
 }
 

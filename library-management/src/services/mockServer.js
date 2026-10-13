@@ -1,20 +1,27 @@
 /**
  * Mock REST API Engine
- * Simulates a full-fledged REST API server handling endpoints:
- *  - GET   /api/books (with query filtering: search, category, author, available)
- *  - GET   /api/books/:id (individual book details, returns 404 if not found)
- *  - PATCH /api/books/:id/status (update availability)
- *  - GET   /api/members/current and /api/members/:id
- *  - PUT   /api/members/:id (update member profile)
- *  - GET   /api/recommendations (intelligent API recommendations based on user history/category)
+ * Simulates a full-fledged REST API server handling endpoints for Experiments 1, 2, and 3:
+ *  - GET    /api/books (with query filtering: search, category, author, available)
+ *  - GET    /api/books/:id (individual book details, returns 404 if not found)
+ *  - POST   /api/books (Create new book - Requirement b)
+ *  - PUT    /api/books/:id (Update book info - Requirement c)
+ *  - PATCH  /api/books/:id (Partial update book info - Requirement c)
+ *  - DELETE /api/books/:id (Delete book - Requirement d)
+ *  - POST   /api/borrowings (Create borrowing record - Requirement e)
+ *  - PATCH  /api/borrowings/:id/return (Update borrowing to returned - Requirement e)
+ *  - PATCH  /api/borrowings/:id/renew (Update borrowing renewal - Requirement e)
+ *  - GET    /api/members/current and /api/members/:id
+ *  - PUT    /api/members/:id (update member profile)
+ *  - GET    /api/recommendations (intelligent recommendations)
  */
 
-import { INITIAL_BOOKS, DEFAULT_MEMBER_DATA } from "./mockData";
-import { apiConfig, sleep } from "./apiConfig";
+import { INITIAL_BOOKS, DEFAULT_MEMBER_DATA } from "./mockData.js";
+import { apiConfig, sleep } from "./apiConfig.js";
 
 // Local storage keys
 const STORAGE_BOOKS_KEY = "library_books_catalog";
 const STORAGE_MEMBER_KEY = "library_member_profile";
+const STORAGE_BORROWINGS_KEY = "library_borrowed_books";
 
 function getStoredBooks() {
   try {
@@ -28,7 +35,6 @@ function getStoredBooks() {
   } catch (e) {
     console.warn("Could not read stored books, using defaults:", e);
   }
-  // Initialize storage
   try {
     localStorage.setItem(STORAGE_BOOKS_KEY, JSON.stringify(INITIAL_BOOKS));
   } catch {
@@ -50,11 +56,6 @@ function getStoredMember() {
     const data = localStorage.getItem(STORAGE_MEMBER_KEY);
     if (data) {
       const parsed = JSON.parse(data);
-      if (parsed.name === "Arun Kumar" || parsed.name === "Arun") {
-        parsed.name = "Aravind Kumar";
-        parsed.email = "aravind.kumar@gmail.com";
-        localStorage.setItem(STORAGE_MEMBER_KEY, JSON.stringify(parsed));
-      }
       return { ...DEFAULT_MEMBER_DATA, ...parsed };
     }
   } catch (e) {
@@ -71,6 +72,26 @@ function saveStoredMember(member) {
   }
 }
 
+function getStoredBorrowings() {
+  try {
+    const data = localStorage.getItem(STORAGE_BORROWINGS_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function saveStoredBorrowings(borrowings) {
+  try {
+    localStorage.setItem(STORAGE_BORROWINGS_KEY, JSON.stringify(borrowings));
+  } catch (e) {
+    console.error("Failed to save borrowings:", e);
+  }
+}
+
 /**
  * Handle simulated errors if configured
  */
@@ -82,9 +103,9 @@ function checkSimulatedErrors() {
     throw error;
   }
   if (apiConfig.simulateError === "HTTP_500") {
-    const error = new Error("Internal Server Error: 500 - Database query failed");
+    const error = new Error("Internal Server Error: 500 - Database operation failed");
     error.status = 500;
-    error.response = { status: 500, statusText: "Internal Server Error", data: { error: "Database query failed" } };
+    error.response = { status: 500, statusText: "Internal Server Error", data: { error: "Database operation failed" } };
     throw error;
   }
 }
@@ -112,7 +133,7 @@ export async function mockRestApiHandler(method, path, options = {}) {
   const pathname = urlObj.pathname;
   const params = urlObj.searchParams;
 
-  // 1. GET /api/books (with query filters)
+  // 1. GET /api/books (Retrieve books with query filters - Requirement a)
   if (method === "GET" && pathname === "/api/books") {
     const books = getStoredBooks();
     const search = (params.get("search") || "").trim().toLowerCase();
@@ -121,20 +142,15 @@ export async function mockRestApiHandler(method, path, options = {}) {
     const available = params.get("available") || "All";
 
     const filtered = books.filter((b) => {
-      // Search in title, author, description
       const matchesSearch =
         !search ||
         b.title.toLowerCase().includes(search) ||
         b.author.toLowerCase().includes(search) ||
         (b.description && b.description.toLowerCase().includes(search));
 
-      // Category filter
       const matchesCategory = category === "All" || b.category.toLowerCase() === category.toLowerCase();
-
-      // Author filter
       const matchesAuthor = author === "All" || b.author.toLowerCase() === author.toLowerCase();
 
-      // Availability filter
       let matchesAvail = true;
       if (available === "Available" || available === "true") {
         matchesAvail = b.available === true;
@@ -158,7 +174,47 @@ export async function mockRestApiHandler(method, path, options = {}) {
     };
   }
 
-  // 2. GET /api/books/:id (individual book details)
+  // 2. POST /api/books (Add a new book - Requirement b)
+  if (method === "POST" && pathname === "/api/books") {
+    const body = options.data || {};
+    if (!body.title || !body.author) {
+      const err = new Error("Validation Error: Title and Author are required fields.");
+      err.status = 400;
+      err.response = { status: 400, data: { error: "Title and Author are required." } };
+      throw err;
+    }
+
+    const books = getStoredBooks();
+    const maxId = books.reduce((max, b) => Math.max(max, Number(b.id) || 100), 100);
+    const newBook = {
+      id: maxId + 1,
+      title: body.title.trim(),
+      author: body.author.trim(),
+      category: body.category || "General Literature",
+      year: Number(body.year) || new Date().getFullYear(),
+      available: body.available !== undefined ? Boolean(body.available) : true,
+      rating: Number(body.rating) || 4.5,
+      isbn: body.isbn || `978-818468${String(maxId + 1).padStart(4, "0")}`,
+      pages: Number(body.pages) || 350,
+      language: body.language || "Tamil",
+      description: body.description || `Added to library catalog on ${new Date().toLocaleDateString()}.`
+    };
+
+    books.unshift(newBook);
+    saveStoredBooks(books);
+
+    return {
+      status: 201,
+      statusText: "Created",
+      data: {
+        success: true,
+        message: `Book "${newBook.title}" created successfully`,
+        book: newBook
+      }
+    };
+  }
+
+  // 3. GET /api/books/:id (individual book details - Requirement a)
   const bookDetailMatch = pathname.match(/^\/api\/books\/([^/]+)$/);
   if (method === "GET" && bookDetailMatch) {
     const bookId = bookDetailMatch[1];
@@ -184,10 +240,9 @@ export async function mockRestApiHandler(method, path, options = {}) {
     };
   }
 
-  // 3. PATCH /api/books/:id/status (update availability status)
-  const bookStatusMatch = pathname.match(/^\/api\/books\/([^/]+)\/status$/);
-  if ((method === "PATCH" || method === "PUT") && bookStatusMatch) {
-    const bookId = bookStatusMatch[1];
+  // 4. PUT/PATCH /api/books/:id (Update book information - Requirement c)
+  if ((method === "PUT" || method === "PATCH") && bookDetailMatch) {
+    const bookId = bookDetailMatch[1];
     const body = options.data || {};
     const books = getStoredBooks();
     const index = books.findIndex(
@@ -197,13 +252,17 @@ export async function mockRestApiHandler(method, path, options = {}) {
     if (index === -1) {
       const err = new Error(`Book with ID #${bookId} not found`);
       err.status = 404;
+      err.response = { status: 404, data: { error: `Book #${bookId} not found` } };
       throw err;
     }
 
-    books[index] = {
+    const updatedBook = {
       ...books[index],
-      available: body.available !== undefined ? body.available : books[index].available
+      ...body,
+      id: books[index].id // preserve ID
     };
+
+    books[index] = updatedBook;
     saveStoredBooks(books);
 
     return {
@@ -211,25 +270,184 @@ export async function mockRestApiHandler(method, path, options = {}) {
       statusText: "OK",
       data: {
         success: true,
-        book: books[index]
+        message: `Book "${updatedBook.title}" updated successfully`,
+        book: updatedBook
       }
     };
   }
 
-  // 4. GET /api/members/current OR /api/members/:id
-  if (method === "GET" && (pathname === "/api/members/current" || pathname.startsWith("/api/members/"))) {
-    const member = getStoredMember();
+  // 5. DELETE /api/books/:id (Delete a book - Requirement d)
+  if (method === "DELETE" && bookDetailMatch) {
+    const bookId = bookDetailMatch[1];
+    const books = getStoredBooks();
+    const index = books.findIndex(
+      (b) => String(b.id) === String(bookId) || String(b.id) === String(Number(bookId) - 100)
+    );
+
+    if (index === -1) {
+      const err = new Error(`Book with ID #${bookId} not found`);
+      err.status = 404;
+      err.response = { status: 404, data: { error: `Book #${bookId} not found` } };
+      throw err;
+    }
+
+    const deletedBook = books[index];
+    const remaining = books.filter((_, i) => i !== index);
+    saveStoredBooks(remaining);
+
     return {
       status: 200,
       statusText: "OK",
       data: {
         success: true,
-        member
+        message: `Book "${deletedBook.title}" was permanently deleted from the catalog`,
+        deletedId: deletedBook.id
       }
     };
   }
 
-  // 5. PUT /api/members/:id
+  // 6. Borrowing records API operations (Requirement e)
+  // GET /api/borrowings
+  if (method === "GET" && pathname === "/api/borrowings") {
+    const borrowings = getStoredBorrowings();
+    return {
+      status: 200,
+      statusText: "OK",
+      data: { success: true, count: borrowings.length, borrowings }
+    };
+  }
+
+  // POST /api/borrowings (Create borrowing record using POST)
+  if (method === "POST" && pathname === "/api/borrowings") {
+    const body = options.data || {};
+    const bookId = body.bookId;
+    const books = getStoredBooks();
+    const bookIndex = books.findIndex((b) => String(b.id) === String(bookId));
+
+    if (bookIndex === -1) {
+      const err = new Error(`Book #${bookId} not found`);
+      err.status = 404;
+      throw err;
+    }
+
+    // Mark book unavailable
+    books[bookIndex].available = false;
+    saveStoredBooks(books);
+
+    const borrowings = getStoredBorrowings();
+    const today = new Date().toISOString().split("T")[0];
+    const due = new Date(Date.now() + (body.durationDays || 14) * 86400000).toISOString().split("T")[0];
+
+    const newBorrowing = {
+      id: "BRW-" + Date.now().toString(36).toUpperCase(),
+      bookId: books[bookIndex].id,
+      title: books[bookIndex].title,
+      author: books[bookIndex].author,
+      category: books[bookIndex].category,
+      borrowDate: today,
+      dueDate: due,
+      renewalCount: 0,
+      maxRenewals: 2,
+      status: "active",
+      notes: body.notes || "14-day standard circulation loan"
+    };
+
+    borrowings.unshift(newBorrowing);
+    saveStoredBorrowings(borrowings);
+
+    return {
+      status: 201,
+      statusText: "Created",
+      data: {
+        success: true,
+        message: `Borrowing record created for "${newBorrowing.title}"`,
+        borrowing: newBorrowing
+      }
+    };
+  }
+
+  // PATCH /api/borrowings/:id/return (Update borrowing record to returned)
+  const borrowReturnMatch = pathname.match(/^\/api\/borrowings\/([^/]+)\/return$/);
+  if ((method === "PATCH" || method === "PUT" || method === "POST") && borrowReturnMatch) {
+    const idOrBookId = borrowReturnMatch[1];
+    const borrowings = getStoredBorrowings();
+    const bIndex = borrowings.findIndex(
+      (b) => String(b.id) === String(idOrBookId) || String(b.bookId) === String(idOrBookId)
+    );
+
+    if (bIndex === -1) {
+      const err = new Error(`Borrowing record #${idOrBookId} not found`);
+      err.status = 404;
+      throw err;
+    }
+
+    const item = borrowings[bIndex];
+    borrowings.splice(bIndex, 1);
+    saveStoredBorrowings(borrowings);
+
+    // Restore book availability
+    const books = getStoredBooks();
+    const bkIdx = books.findIndex((b) => String(b.id) === String(item.bookId));
+    if (bkIdx !== -1) {
+      books[bkIdx].available = true;
+      saveStoredBooks(books);
+    }
+
+    return {
+      status: 200,
+      statusText: "OK",
+      data: {
+        success: true,
+        message: `Book "${item.title}" successfully returned to circulation`,
+        returnedId: item.id
+      }
+    };
+  }
+
+  // PATCH /api/borrowings/:id/renew (Update borrowing record extension)
+  const borrowRenewMatch = pathname.match(/^\/api\/borrowings\/([^/]+)\/renew$/);
+  if ((method === "PATCH" || method === "PUT" || method === "POST") && borrowRenewMatch) {
+    const idOrBookId = borrowRenewMatch[1];
+    const borrowings = getStoredBorrowings();
+    const bIndex = borrowings.findIndex(
+      (b) => String(b.id) === String(idOrBookId) || String(b.bookId) === String(idOrBookId)
+    );
+
+    if (bIndex === -1) {
+      const err = new Error(`Borrowing record #${idOrBookId} not found`);
+      err.status = 404;
+      throw err;
+    }
+
+    const currentDue = new Date(borrowings[bIndex].dueDate || Date.now());
+    const newDue = new Date(currentDue.getTime() + 7 * 86400000).toISOString().split("T")[0];
+
+    borrowings[bIndex].dueDate = newDue;
+    borrowings[bIndex].renewalCount = (borrowings[bIndex].renewalCount || 0) + 1;
+    saveStoredBorrowings(borrowings);
+
+    return {
+      status: 200,
+      statusText: "OK",
+      data: {
+        success: true,
+        message: `Borrowing renewed for +7 days. New due date: ${newDue}`,
+        borrowing: borrowings[bIndex]
+      }
+    };
+  }
+
+  // 7. GET /api/members/current OR /api/members/:id
+  if (method === "GET" && (pathname === "/api/members/current" || pathname.startsWith("/api/members/"))) {
+    const member = getStoredMember();
+    return {
+      status: 200,
+      statusText: "OK",
+      data: { success: true, member }
+    };
+  }
+
+  // 8. PUT /api/members/:id
   if (method === "PUT" && pathname.startsWith("/api/members/")) {
     const body = options.data || {};
     const currentMember = getStoredMember();
@@ -238,27 +456,22 @@ export async function mockRestApiHandler(method, path, options = {}) {
     return {
       status: 200,
       statusText: "OK",
-      data: {
-        success: true,
-        member: updated
-      }
+      data: { success: true, member: updated }
     };
   }
 
-  // 6. GET /api/recommendations (API-based recommendations)
+  // 9. GET /api/recommendations
   if (method === "GET" && pathname === "/api/recommendations") {
     const books = getStoredBooks();
     const member = getStoredMember();
     const requestedCat = params.get("category");
     const limit = Number(params.get("limit")) || 3;
 
-    // Recommendation logic:
-    // Prefer books in requested category or member preferred categories
-    const targetCategory = requestedCat || (member.preferredCategories && member.preferredCategories[0]) || "Historical Fiction";
+    const targetCategory =
+      requestedCat || (member.preferredCategories && member.preferredCategories[0]) || "Historical Fiction";
 
     let pool = books.filter((b) => b.category.toLowerCase() === targetCategory.toLowerCase());
     if (pool.length < limit) {
-      // Add other highly rated or available books
       const extra = books.filter((b) => b.category.toLowerCase() !== targetCategory.toLowerCase() && b.available);
       pool = [...pool, ...extra];
     }

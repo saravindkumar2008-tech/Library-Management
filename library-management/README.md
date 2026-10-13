@@ -108,7 +108,51 @@ A modern library management web application built with **React**, **Vite**, **Ax
 
 ---
 
-## 📚 Experiment 3: Implement Library Navigation Using React Router
+## 🛠️ Experiment 3: Implement Library Book and Borrowing CRUD Operations
+
+**Topics Covered:** CRUD (Create, Read, Update, Delete), REST API, Axios / Fetch, State Synchronization, Modal Workflows, and Error States.
+
+### Requirements & Implementations:
+
+#### a) Retrieve books using GET
+- **Endpoints**: `GET /api/books` and `GET /api/books/:id`
+- Retrieves the full book catalog with search, category, author, and availability query parameters.
+- Dynamically loads individual book details on `/book/:id` with HTTP 200/404 handling.
+
+#### b) Add a new book using POST
+- **Endpoint**: `POST /api/books`
+- Triggered via the **`➕ Add New Book (POST API)`** button in the catalog header.
+- [`BookFormModal.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/components/BookFormModal.jsx) collects book metadata (Title, Author, Category, Year, ISBN, Rating, Pages, Description).
+- Dispatches HTTP `POST` via [`bookService.createBook()`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/services/bookService.js), updates Redux store (`addBook`), persists to `localStorage`, and displays success toast notification.
+
+#### c) Update book information using PUT / PATCH
+- **Endpoint**: `PUT /api/books/:id` or `PATCH /api/books/:id`
+- Triggered via the **`✏️ Edit`** button on any Book Card or the Book Detail page.
+- Pre-populates existing data in `BookFormModal.jsx`, sends HTTP `PUT`/`PATCH` request, updates Redux store (`updateBookInfo`), updates active loans if currently borrowed, and displays toast feedback.
+
+#### d) Delete a book using DELETE
+- **Endpoint**: `DELETE /api/books/:id`
+- Triggered via the **`🗑️ Del`** button on any Book Card or the Book Detail page.
+- Opens [`DeleteConfirmModal.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/components/DeleteConfirmModal.jsx) displaying a safety warning.
+- Sends HTTP `DELETE` request, removes the record from catalog and Redux store (`deleteBook`), and handles optimistic/confirmed removal.
+
+#### e) Create and update borrowing records using API operations
+- **Create Borrowing (POST)**: `POST /api/borrowings`
+  - Submits loan request, marks book unavailable (`available: false`), creates an active borrowing record with a 14-day due date, and increments member loan quota.
+- **Return Book (PATCH / PUT)**: `PATCH /api/borrowings/:id/return`
+  - Closes the active loan, restores book availability to `true`, and appends completed record to reading history.
+- **Renew Loan (PATCH / PUT)**: `PATCH /api/borrowings/:id/renew`
+  - Extends loan due date by **+7 days** and increments renewal counter (up to 2 maximum renewals).
+
+#### f) Display suitable loading and error states
+- **Submit Loading States**: Buttons display animated spinners (*"Creating Book..."*, *"Updating Book..."*, *"Deleting..."*).
+- **Validation Errors**: Inline error alerts for required fields (Title, Author).
+- **Network & Server Errors**: Informative red alert cards with retry actions if an API operation fails.
+- **Empty States**: Customized views for empty search results or empty loan records.
+
+---
+
+## 📚 Experiment 4: Implement Library Navigation Using React Router
 
 **Topics Covered:** React Router v7, Dynamic Routing, Nested Routing, `useParams`, `useNavigate`, `Outlet`, `Link`, and `NavLink`.
 

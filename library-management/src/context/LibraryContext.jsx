@@ -6,6 +6,9 @@ import {
   renewBook as reduxRenewBook,
   placeHold as reduxPlaceHold,
   cancelHold as reduxCancelHold,
+  addBook as reduxAddBook,
+  updateBookInfo as reduxUpdateBookInfo,
+  deleteBook as reduxDeleteBook,
   updateBookAvailability as reduxUpdateBookAvailability,
   setSearch as reduxSetSearch,
   setCategory as reduxSetCategory,
@@ -17,6 +20,7 @@ import {
   resetStore as reduxResetStore
 } from "../store/librarySlice";
 import { apiConfig } from "../services/apiConfig";
+import { bookService } from "../services/bookService";
 
 // 1. Create the LibraryContext
 export const LibraryContext = createContext(null);
@@ -138,23 +142,87 @@ export function LibraryProvider({ children }) {
     return { totalBorrowed, completedCount, topCategory };
   }, [borrowedBooks, readingHistory]);
 
-  // Requirement c: Redux Actions Dispatched through Middleware
+  // Requirement b: Add new book using POST API (Experiment 3)
+  const addBook = useCallback(
+    async (bookData) => {
+      try {
+        const created = await bookService.createBook(bookData);
+        dispatch(reduxAddBook(created));
+        return { success: true, book: created };
+      } catch (err) {
+        console.error("API error adding book:", err);
+        const fallback = { ...bookData, id: Date.now() };
+        dispatch(reduxAddBook(fallback));
+        return { success: false, error: err.message, book: fallback };
+      }
+    },
+    [dispatch]
+  );
+
+  // Requirement c: Update book information using PUT/PATCH API (Experiment 3)
+  const updateBook = useCallback(
+    async (id, bookData) => {
+      try {
+        const updated = await bookService.updateBook(id, bookData);
+        dispatch(reduxUpdateBookInfo(updated));
+        return { success: true, book: updated };
+      } catch (err) {
+        console.error("API error updating book:", err);
+        dispatch(reduxUpdateBookInfo({ id, ...bookData }));
+        return { success: false, error: err.message };
+      }
+    },
+    [dispatch]
+  );
+
+  // Requirement d: Delete a book using DELETE API (Experiment 3)
+  const deleteBook = useCallback(
+    async (id) => {
+      try {
+        await bookService.deleteBook(id);
+        dispatch(reduxDeleteBook(id));
+        return { success: true };
+      } catch (err) {
+        console.error("API error deleting book:", err);
+        dispatch(reduxDeleteBook(id));
+        return { success: false, error: err.message };
+      }
+    },
+    [dispatch]
+  );
+
+  // Requirement e: Create and update borrowing records using API operations
   const borrowBook = useCallback(
-    (bookId, durationDays = 14, notes = "") => {
+    async (bookId, durationDays = 14, notes = "") => {
+      try {
+        await bookService.borrowBookApi({ bookId, durationDays, notes });
+      } catch (err) {
+        console.warn("Async borrow API notice:", err);
+      }
       dispatch(reduxBorrowBook({ bookId, durationDays, notes }));
     },
     [dispatch]
   );
 
   const returnBook = useCallback(
-    (bookId, rating = 5, notes = "") => {
+    async (bookId, rating = 5, notes = "") => {
+      try {
+        await bookService.returnBookApi(bookId, { rating, notes });
+      } catch (err) {
+        console.warn("Async return API notice:", err);
+      }
       dispatch(reduxReturnBook({ bookId, rating, notes }));
     },
     [dispatch]
   );
 
   const renewBook = useCallback(
-    (bookId, extensionDays = 7, reason = "") => {
+    async (bookId, extensionDays = 7, reason = "") => {
+      try {
+        await bookService.renewBookApi(bookId, { extensionDays });
+      } catch (err) {
+        console.warn("Async renew API notice:", err);
+      }
       dispatch(reduxRenewBook({ bookId, extensionDays, reason }));
     },
     [dispatch]
@@ -176,6 +244,7 @@ export function LibraryProvider({ children }) {
 
   const updateBookAvailability = useCallback(
     (id, available) => {
+      bookService.updateBookAvailability(id, available).catch(() => {});
       dispatch(reduxUpdateBookAvailability({ id, available }));
     },
     [dispatch]
@@ -234,12 +303,15 @@ export function LibraryProvider({ children }) {
     dueSoonBooks,
     readingStatistics,
 
-    // Redux Actions (Requirement c)
+    // Redux & REST API Actions (Experiment 2 & 3)
     borrowBook,
     returnBook,
     renewBook,
     placeHold,
     cancelHold,
+    addBook,
+    updateBook,
+    deleteBook,
     clearBorrowing: resetStore,
     operationFeedback,
     resetStore,
