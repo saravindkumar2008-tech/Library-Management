@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useBooks } from "../hooks/useBooks";
 import { useBorrowing } from "../hooks/useBorrowing";
+import { memberService } from "../services/memberService";
+import { apiConfig } from "../services/apiConfig";
 
 // 1. Create the LibraryContext
 export const LibraryContext = createContext(null);
@@ -12,54 +14,82 @@ const DEFAULT_MEMBER = {
   phone: "+91 98765 43210",
   branch: "AK Central Library, Chennai",
   membershipTier: "Gold Scholar",
-  joinedDate: "2024-01-15"
+  joinedDate: "2024-01-15",
+  maxBooksAllowed: 5
 };
 
 /**
  * LibraryProvider Component
- * Integrates useBooks and useBorrowing hooks, member profile state,
- * and shares state seamlessly to child components without prop drilling.
+ * Integrates REST API data fetching for Books and Members,
+ * useBorrowing hook, and global API control states.
  */
 export function LibraryProvider({ children }) {
-  // Member Profile State with localStorage persistence
+  // Member Profile State with REST API integration (Requirement a)
   const [member, setMemberState] = useState(DEFAULT_MEMBER);
+  const [memberLoading, setMemberLoading] = useState(true);
+  const [memberError, setMemberError] = useState(null);
 
-  // Requirement c: Use useEffect to load member information when application starts
+  // API Configuration State
+  const [apiEngine, setApiEngineState] = useState(apiConfig.clientType);
+  const [simulatedDelay, setSimulatedDelayState] = useState(apiConfig.simulatedDelay);
+  const [simulateError, setSimulateErrorState] = useState(apiConfig.simulateError);
+
+  // Sync API config state
   useEffect(() => {
+    return apiConfig.subscribe((cfg) => {
+      setApiEngineState(cfg.clientType);
+      setSimulatedDelayState(cfg.simulatedDelay);
+      setSimulateErrorState(cfg.simulateError);
+    });
+  }, []);
+
+  const setApiEngine = (engine) => {
+    apiConfig.setClientType(engine);
+  };
+
+  const setSimulatedDelay = (ms) => {
+    apiConfig.setSimulatedDelay(ms);
+  };
+
+  const setSimulateError = (err) => {
+    apiConfig.setSimulateError(err);
+  };
+
+  // Requirement a: Fetch member information using REST APIs
+  const fetchMemberInfo = useCallback(async () => {
+    setMemberLoading(true);
+    setMemberError(null);
     try {
-      const saved = localStorage.getItem("library_member_profile");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.name === "Arun Kumar" || parsed.name === "Arun") {
-          parsed.name = "Aravind Kumar";
-          parsed.email = "aravind.kumar@gmail.com";
-          localStorage.setItem("library_member_profile", JSON.stringify(parsed));
-        }
-        setMemberState(parsed);
-      } else {
-        setMemberState(DEFAULT_MEMBER);
-      }
-    } catch {
-      setMemberState(DEFAULT_MEMBER);
+      const data = await memberService.fetchCurrentMember();
+      setMemberState(data);
+    } catch (err) {
+      console.error("Error fetching member from REST API:", err);
+      setMemberError(err.message || "Failed to load member profile via REST API.");
+    } finally {
+      setMemberLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchMemberInfo();
+  }, [fetchMemberInfo]);
 
   const setMember = (updater) => {
     setMemberState((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
-      try {
-        localStorage.setItem("library_member_profile", JSON.stringify(next));
-      } catch (err) {
-        console.error("Failed to save member profile", err);
-      }
+      memberService.updateMemberProfile(next.memberId || "AK-LIB-101", next).catch((err) => {
+        console.warn("Async member update error:", err);
+      });
       return next;
     });
   };
 
-  // 1. useBooks custom hook
+  // 1. useBooks custom hook (REST API driven)
   const {
     books,
-    setBooks,
+    filteredBooks,
+    loading: booksLoading,
+    error: booksError,
     search,
     setSearch,
     author,
@@ -68,9 +98,10 @@ export function LibraryProvider({ children }) {
     setCategory,
     availability,
     setAvailability,
-    filteredBooks,
+    currentEngine,
     updateBookAvailability,
-    resetFilters
+    resetFilters,
+    refetchBooks
   } = useBooks();
 
   // 2. useBorrowing custom hook
@@ -91,22 +122,19 @@ export function LibraryProvider({ children }) {
     operationFeedback
   } = useBorrowing(books, updateBookAvailability, member);
 
-  // Selected book for BookDetail modal
+  // Detail Modal management
   const [selectedBook, setSelectedBook] = useState(null);
-
-  const openBookDetail = (book) => {
-    setSelectedBook(book);
-  };
-
-  const closeBookDetail = () => {
-    setSelectedBook(null);
-  };
+  const openBookDetail = (book) => setSelectedBook(book);
+  const closeBookDetail = () => setSelectedBook(null);
 
   // Shared context value object
   const value = {
-    // Book catalog & search/filter state (from useBooks)
+    // Book catalog & search/filter state (REST API)
     books,
-    setBooks,
+    filteredBooks,
+    booksLoading,
+    booksError,
+    refetchBooks,
     search,
     setSearch,
     author,
@@ -115,11 +143,10 @@ export function LibraryProvider({ children }) {
     setCategory,
     availability,
     setAvailability,
-    filteredBooks,
     updateBookAvailability,
     resetFilters,
 
-    // Borrowing & stats state (from useBorrowing)
+    // Borrowing & stats state
     borrowedBooks,
     readingHistory,
     holdRequests,
@@ -128,7 +155,7 @@ export function LibraryProvider({ children }) {
     dueSoonBooks,
     readingStatistics,
 
-    // Operations (useCallback)
+    // Operations
     borrowBook,
     returnBook,
     renewBook,
@@ -137,9 +164,21 @@ export function LibraryProvider({ children }) {
     clearBorrowing,
     operationFeedback,
 
-    // Member information
+    // Member information via REST API
     member,
     setMember,
+    memberLoading,
+    memberError,
+    refetchMember: fetchMemberInfo,
+
+    // API Engine & Simulation Controls
+    apiEngine,
+    setApiEngine,
+    simulatedDelay,
+    setSimulatedDelay,
+    simulateError,
+    setSimulateError,
+    currentEngine,
 
     // Detail Modal management
     selectedBook,
@@ -156,7 +195,6 @@ export function LibraryProvider({ children }) {
 
 /**
  * Custom Hook: useLibrary
- * Provides direct access to LibraryContext without manual useContext calls.
  */
 export function useLibrary() {
   const context = useContext(LibraryContext);

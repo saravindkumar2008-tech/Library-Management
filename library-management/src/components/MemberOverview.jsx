@@ -28,6 +28,9 @@ function MemberOverview() {
             <span className="tier-tag">{member?.membershipTier || "Gold Scholar"}</span> • Branch:{" "}
             {member?.branch || "AK Central Library, Chennai"}
           </p>
+          <div style={{ marginTop: "6px", fontSize: "12px", color: "var(--text-muted)" }}>
+            ⚡ Profile loaded dynamically from <code>GET /api/members/current</code>
+          </div>
         </div>
         <div className="welcome-actions">
           <Link to="/books" className="btn-primary">

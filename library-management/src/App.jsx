@@ -22,6 +22,7 @@ import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Button from "./components/Button";
+import RestApiInspector from "./components/RestApiInspector";
 
 import "./App.css";
 
@@ -169,6 +170,9 @@ function LibraryLayout() {
           </Routes>
         </ErrorBoundary>
       </main>
+
+      {/* Real-time REST API Network Inspector (Experiment 1) */}
+      <RestApiInspector />
 
       <Footer />
     </div>

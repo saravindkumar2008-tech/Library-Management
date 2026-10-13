@@ -1,172 +1,110 @@
-import { useState, useMemo, useEffect } from "react";
-
-const INITIAL_BOOKS = [
-  {
-    id: 101,
-    title: "Ponniyin Selvan",
-    author: "Kalki Krishnamurthy",
-    category: "Historical Fiction",
-    year: 1955,
-    available: true,
-    description: "A monumental 5-volume historical fiction classic portraying the early life of Rajaraja Chola I and the Chola empire intrigues."
-  },
-  {
-    id: 102,
-    title: "Sivagamiyin Sabatham",
-    author: "Kalki Krishnamurthy",
-    category: "Historical Fiction",
-    year: 1948,
-    available: true,
-    description: "Set during the 7th century Pallava-Chalukya conflicts, centered around the sculptor Sivagami and King Narasimhavarman I."
-  },
-  {
-    id: 103,
-    title: "Thirukkural",
-    author: "Thiruvalluvar",
-    category: "Philosophy & Ethics",
-    year: 300,
-    available: true,
-    description: "A timeless ancient masterpiece containing 1,330 couplets covering virtue (Aram), wealth (Porul), and love (Inbam)."
-  },
-  {
-    id: 104,
-    title: "Kaaval Kottam",
-    author: "Su. Venkatesan",
-    category: "Historical Fiction",
-    year: 2008,
-    available: true,
-    description: "Sahitya Akademi award-winning epic novel chronicling 600 years of the history and guardianship of Madurai."
-  },
-  {
-    id: 105,
-    title: "Velpari",
-    author: "Su. Venkatesan",
-    category: "Epic Fiction",
-    year: 2018,
-    available: true,
-    description: "The gripping legend of the valiant chieftain Pari, king of Parambu Nadu, defying the combined might of the three great dynasties."
-  },
-  {
-    id: 106,
-    title: "En Iniya Iyanthira",
-    author: "Sujatha",
-    category: "Science Fiction",
-    year: 1987,
-    available: true,
-    description: "A pioneering Tamil sci-fi dystopian saga featuring totalitarian rule, androids, and the robot dog Jeeno."
-  },
-  {
-    id: 107,
-    title: "Parthiban Kanavu",
-    author: "Kalki Krishnamurthy",
-    category: "Historical Fiction",
-    year: 1943,
-    available: true,
-    description: "The inspiring narrative of Chola Prince Vikraman fulfilling his father King Parthiban's dream of Chola restoration."
-  },
-  {
-    id: 108,
-    title: "Gopallapurathu Makkal",
-    author: "Ki. Rajanarayanan",
-    category: "Folk Literature",
-    year: 1989,
-    available: true,
-    description: "A celebrated Sahitya Akademi-winning tale of migration, folk resilience, and life in the arid Karisal country."
-  },
-  {
-    id: 109,
-    title: "Silapathikaram",
-    author: "Ilango Adigal",
-    category: "Classic Literature",
-    year: 500,
-    available: true,
-    description: "One of the Five Great Epics of Tamil literature, following Kannagi's relentless quest for justice against the Pandyan king."
-  },
-  {
-    id: 110,
-    title: "Kadal Pura",
-    author: "Sandilyan",
-    category: "Historical Fiction",
-    year: 1967,
-    available: true,
-    description: "An adventurous historical naval romance following the expeditions of the Chola navy across Southeast Asian waters."
-  }
-];
+import { useState, useEffect, useRef, useCallback } from "react";
+import { bookService } from "../services/bookService";
+import { apiConfig } from "../services/apiConfig";
 
 /**
  * Custom Hook: useBooks
- * Manages book catalog, title search, author search, category filtering, and availability filtering.
+ * Handles asynchronous REST API data fetching, loading & error states,
+ * debounced search querying, category filtering, and request cancellation.
+ * Satisfies Requirements a, b, d, e.
  */
-export function useBooks(initialData = INITIAL_BOOKS) {
+export function useBooks() {
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Search & Filter state
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [author, setAuthor] = useState("All");
   const [category, setCategory] = useState("All");
-  const [availability, setAvailability] = useState("All"); // "All" | "Available" | "Unavailable"
+  const [availability, setAvailability] = useState("All");
 
-  // Load books and migrate IDs if needed
+  // Track active API engine
+  const [currentEngine, setCurrentEngine] = useState(apiConfig.clientType);
+
+  // Debounce search input to avoid flooding REST API
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("library_books_catalog");
-      if (saved) {
-        let parsed = JSON.parse(saved);
-        // If old IDs (1..10), migrate them to 101..110
-        if (parsed.length > 0 && parsed[0].id < 100) {
-          parsed = parsed.map((b) => ({
-            ...b,
-            id: b.id + 100
-          }));
-          localStorage.setItem("library_books_catalog", JSON.stringify(parsed));
-        }
-        setBooks(parsed);
-      } else {
-        setBooks(initialData);
-      }
-    } catch {
-      setBooks(initialData);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Subscribe to API config changes (e.g. when engine is toggled between Axios and Fetch)
+  useEffect(() => {
+    return apiConfig.subscribe((cfg) => {
+      setCurrentEngine(cfg.clientType);
+    });
+  }, []);
+
+  // Fetch books asynchronously via REST API
+  const abortControllerRef = useRef(null);
+
+  const fetchBooksFromApi = useCallback(async () => {
+    // Cancel any previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-  }, [initialData]);
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-  // Filtered books calculated using useMemo
-  const filteredBooks = useMemo(() => {
-    return books.filter((book) => {
-      // Title search (also checks author in free text search)
-      const query = search.trim().toLowerCase();
-      const titleMatch = !query || 
-        book.title.toLowerCase().includes(query) || 
-        book.author.toLowerCase().includes(query);
+    setLoading(true);
+    setError(null);
 
-      // Author filter
-      const authorMatch = author === "All" || book.author === author;
-
-      // Category filter
-      const categoryMatch = category === "All" || book.category === category;
-
-      // Availability filter
-      const availabilityMatch =
-        availability === "All" ||
-        (availability === "Available" && book.available) ||
-        (availability === "Unavailable" && !book.available);
-
-      return titleMatch && authorMatch && categoryMatch && availabilityMatch;
-    });
-  }, [books, search, author, category, availability]);
-
-  // Update a book's availability status
-  const updateBookAvailability = (id, isAvailable) => {
-    setBooks((prev) => {
-      const updated = prev.map((b) => (b.id === id ? { ...b, available: isAvailable } : b));
-      try {
-        localStorage.setItem("library_books_catalog", JSON.stringify(updated));
-      } catch (err) {
-        console.error("Failed to save books catalog", err);
+    try {
+      const data = await bookService.fetchBooks({
+        search: debouncedSearch,
+        category,
+        author,
+        available: availability,
+        signal: abortController.signal
+      });
+      setBooks(data);
+      setError(null);
+    } catch (err) {
+      if (err.name === "AbortError") {
+        // Request was cancelled due to subsequent user interaction; do not show error
+        return;
       }
-      return updated;
-    });
+      console.error("Error fetching books via REST API:", err);
+      setError(err.message || "Failed to fetch books from REST API. Please check your network connection.");
+    } finally {
+      // Only reset loading if this is the active request
+      if (abortControllerRef.current === abortController) {
+        setLoading(false);
+      }
+    }
+  }, [debouncedSearch, category, author, availability]);
+
+  // Trigger fetch on filter/search or engine change
+  useEffect(() => {
+    fetchBooksFromApi();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchBooksFromApi]);
+
+  // Update book availability via REST API PATCH request
+  const updateBookAvailability = async (id, isAvailable) => {
+    try {
+      const updatedBook = await bookService.updateBookAvailability(id, isAvailable);
+      setBooks((prev) => prev.map((b) => (b.id === id ? { ...b, available: isAvailable } : b)));
+      return updatedBook;
+    } catch (err) {
+      console.error(`Failed to update book status for #${id}:`, err);
+      // Optimistic update locally
+      setBooks((prev) => prev.map((b) => (b.id === id ? { ...b, available: isAvailable } : b)));
+    }
   };
 
   const resetFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setAuthor("All");
     setCategory("All");
     setAvailability("All");
@@ -174,7 +112,9 @@ export function useBooks(initialData = INITIAL_BOOKS) {
 
   return {
     books,
-    setBooks,
+    filteredBooks: books, // The REST API filters server-side based on query params
+    loading,
+    error,
     search,
     setSearch,
     author,
@@ -183,8 +123,9 @@ export function useBooks(initialData = INITIAL_BOOKS) {
     setCategory,
     availability,
     setAvailability,
-    filteredBooks,
+    currentEngine,
     updateBookAvailability,
-    resetFilters
+    resetFilters,
+    refetchBooks: fetchBooksFromApi
   };
 }
