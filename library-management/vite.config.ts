@@ -114,6 +114,7 @@ const SEED_BOOKS = [
   }
 ];
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const mockRestApiPlugin = () => ({
   name: 'mock-rest-api',
   configureServer(server: any) {

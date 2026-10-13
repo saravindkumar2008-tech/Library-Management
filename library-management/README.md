@@ -1,6 +1,61 @@
-# Library Management System - React Router, Authentication & Error Handling
+# Library Management System - REST API, React Router, Authentication & Error Handling
 
-A modern library management web application built with **React**, **React Router v7**, and **Context API**.
+A modern library management web application built with **React**, **Vite**, **Axios**, **Fetch API**, **React Router v7**, and **Context API**.
+
+---
+
+## 🌐 Experiment 1: Develop Library Application with Book REST API
+
+**Topics Covered:** REST API, Axios, Fetch, Async Data, Promises, Error Handling, AbortController, and Dynamic Loading States.
+
+### Requirements & Implementations:
+
+#### a) Fetch book and member information using REST APIs
+- **Endpoints**:
+  - `GET /api/books`: Asynchronously retrieves the collection of Tamil literature books.
+  - `GET /api/members/current`: Asynchronously retrieves the authenticated member's profile, tier, and loan quotas.
+- **Service Layer**: Decoupled in [`src/services/bookService.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/services/bookService.js) and [`src/services/memberService.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/services/memberService.js).
+- **Dual HTTP Clients**: Support for both **Axios** (with request/response interceptors, auth headers, and timing metadata) and native **Fetch API** (with `res.ok` validation and `AbortController` cancellation).
+- **Live Switcher**: A toolbar in the UI enables switching between Axios and Fetch on the fly.
+
+#### b) Implement book search and category filtering
+- **API Query Parameters**:
+  - `GET /api/books?search={query}&category={cat}&author={author}&available={status}`
+- **Debounced Asynchronous Requests**: Search queries are debounced (300ms) to prevent unnecessary network requests while the user is typing.
+- **Category Filter Dropdown**: Allows filtering by literary categories (e.g., Historical Fiction, Epic Fiction, Philosophy & Ethics).
+- **Author & Availability Filters**: Dynamic dropdown filters combined seamlessly with the search query.
+- **Active Filters & Reset**: Includes quick reset actions to restore all filters.
+
+#### c) Fetch individual book details dynamically
+- **Endpoint**: `GET /api/books/:id`
+- **Dynamic Lookup**: When navigating to `/book/:id`, [`BookDetailPage.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/components/BookDetailPage.jsx) extracts the `id` param and makes an asynchronous REST API call to fetch that specific book's details dynamically.
+- **404 Handling**: If a book ID is invalid or not found, a structured 404 response is returned and rendered with a user-friendly error card and recovery options.
+
+#### d) Handle asynchronous API requests
+- **Async/Await & Promises**: Full asynchronous implementation across services, hooks, and UI layers.
+- **Request Cancellation**: Uses `AbortController` to cancel in-flight requests during rapid typing or component unmounting, preventing race conditions.
+- **Request Interception & Timing**: Interceptors attach Bearer tokens, calculate round-trip response duration, and record metadata.
+
+#### e) Display loading and error states
+- **Loading Indicators**:
+  - Loading spinners via [`Loading.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/components/common/Loading.jsx).
+  - Shimmering skeleton cards rendered while the book catalog is loading.
+- **Error States & Recovery**:
+  - Informative error alert cards displaying HTTP status codes and error messages.
+  - Prominent **"🔄 Retry Request"** buttons to retry failed queries without reloading the page.
+- **Interactive Simulation Controls**:
+  - **Latency Simulation**: Select between 0ms, 400ms, 1000ms, and 2000ms delays to test loading spinners.
+  - **Error Simulation**: Toggle between 200 OK, 500 Server Error, and Network Drop to test error handling and recovery.
+
+#### f) Implement API-based recommendations
+- **Endpoint**: `GET /api/recommendations?memberId={id}&category={cat}&limit={limit}`
+- **Personalized Recommendations**: Analyzes the member's reading history and preferred categories to return top-matching book recommendations.
+- **Recommendation Badges & Reasons**: Each recommended book displays a match score (e.g. 95%), recommendation tags (e.g. *Staff Pick*, *Trending*), and personalized rationale (e.g. *Top match for your interest in Historical Fiction*).
+- **Asynchronous Refresh**: Real-time "Refresh Recommendations" button triggering an async API re-query.
+
+#### 📡 Real-time REST API Network Inspector:
+- A collapsible bottom dock (`RestApiInspector.jsx`) providing live visibility into all network traffic:
+  - Timestamp, HTTP Method (`GET`, `PATCH`, `PUT`), URL, Client Engine (Axios / Fetch), HTTP Status Code, and Round-Trip Latency (ms).
 
 ---
 
