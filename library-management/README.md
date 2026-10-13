@@ -59,6 +59,55 @@ A modern library management web application built with **React**, **Vite**, **Ax
 
 ---
 
+## ⚡ Experiment 2: Implement Library State Management using Redux Toolkit or Zustand
+
+**Topics Covered:** Redux Toolkit (`createSlice`, `configureStore`), Zustand (Alternative Store with `persist`), Custom Middleware, Browser Storage Synchronization, and Live State Monitoring.
+
+### Requirements & Implementations:
+
+#### a) Create a global library store
+- **Store Configuration**: Implemented in [`src/store/index.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/store/index.js) using Redux Toolkit's `configureStore()`.
+- **Root Reducer**: Integrates `libraryReducer` from [`src/store/librarySlice.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/store/librarySlice.js).
+- **Zustand Implementation**: Equivalent store implemented in [`src/store/zustandStore.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/store/zustandStore.js) for comparative study.
+- **Provider Injection**: Root `<Provider store={store}>` wraps the app in [`src/App.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/App.jsx).
+
+#### b) Manage books, borrowed books, member information, and reading history
+- **Unified Global State Slice**:
+  - `books`: Catalog of 10 Tamil literature books with availability, ISBN, and metadata.
+  - `borrowedBooks`: Active borrowings with loan duration, due dates, and renewal counters.
+  - `member`: Identity, tier (`Gold Scholar`), branch, borrowing limits, and loan quotas.
+  - `readingHistory`: Completed books with return dates, duration kept, and ratings.
+  - `holdRequests`: Active book reservations when items are unavailable.
+
+#### c) Implement borrow, return, renew, and hold actions
+- **`borrowBook`**: Validates availability and maximum loan limits (5 books), marks book unavailable, sets 14-day due date, adds to `borrowedBooks`, increments member loan count, and triggers success feedback.
+- **`returnBook`**: Removes from `borrowedBooks`, restores availability, records completion in `readingHistory` with days kept, decrements member loan count, and triggers feedback.
+- **`renewBook`**: Checks maximum renewals limit (2), extends due date by +7 days, increments `renewalCount`, and notifies user.
+- **`placeHold`**: Queues priority reservation for unavailable titles and tracks queue position.
+- **`cancelHold`**: Cancels reservation holds.
+
+#### d) Use middleware to monitor library actions
+- **Custom Middleware**: [`src/store/middleware/libraryActionLogger.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/store/middleware/libraryActionLogger.js).
+- Intercepts all actions starting with `library/` (`library/borrowBook`, `library/returnBook`, `library/renewBook`, `library/placeHold`).
+- Calculates action execution duration (ms), logs structured colored groups in browser DevTools console, and streams live action events to the UI dock.
+
+#### e) Synchronize state with browser storage
+- **Custom Middleware**: [`src/store/middleware/storageSyncMiddleware.js`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/store/middleware/storageSyncMiddleware.js).
+- Automatically persists state under `redux_library_store` on every state change.
+- `loadPersistedState()` seamlessly hydrates the Redux store on application reload.
+
+#### f) Display suitable loading and empty states
+- **Loading States**: Shimmering skeleton cards and spinner rings during async catalog fetches.
+- **Empty States**: Customized cards when search yields no books, when borrowed list has 0 books, or when reading history is empty.
+
+#### 🔄 Redux Toolkit Action & Middleware Inspector:
+- A collapsible bottom-left dock ([`src/components/ReduxActionInspector.jsx`](file:///c:/Users/sarav/OneDrive/Desktop/web%203/library-management/src/components/ReduxActionInspector.jsx)) featuring:
+  - Live state counters (Books, Borrowed, History, Holds, Storage Sync).
+  - Quick action dispatchers (`+ Borrow`, `↩ Return`, `⏱ Renew`, `⏳ Hold`, `🔄 Reset`).
+  - Real-time middleware activity log table showing Time, Action Type, Payload, and State Diff.
+
+---
+
 ## 📚 Experiment 3: Implement Library Navigation Using React Router
 
 **Topics Covered:** React Router v7, Dynamic Routing, Nested Routing, `useParams`, `useNavigate`, `Outlet`, `Link`, and `NavLink`.

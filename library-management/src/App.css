@@ -3531,3 +3531,237 @@ footer {
   text-align: right;
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   EXPERIMENT 2: REDUX TOOLKIT & MIDDLEWARE MONITOR STYLES
+   ========================================================================== */
+
+.redux-inspector-dock {
+  position: fixed;
+  bottom: 0;
+  left: 24px;
+  width: min(650px, calc(100vw - 48px));
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+  border: 1px solid #374151;
+  border-bottom: none;
+  z-index: 9998;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.redux-inspector-dock.collapsed .redux-inspector-content {
+  display: none;
+}
+
+.redux-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  background: #1f2937;
+  border-radius: 12px 12px 0 0;
+  user-select: none;
+}
+
+.redux-toggle-bar:hover {
+  background: #374151;
+}
+
+.redux-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.redux-pulse-icon {
+  font-size: 14px;
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes spin-slow {
+  100% { transform: rotate(360deg); }
+}
+
+.redux-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: #7c3aed;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.redux-loans-badge {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.redux-toggle-btn {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.redux-inspector-content {
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  background: #111827;
+}
+
+.redux-state-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+
+.redux-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #111827;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  border: 1px solid #374151;
+}
+
+.pill-label {
+  color: #9ca3af;
+}
+
+.pill-value {
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.redux-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #111827;
+  border-bottom: 1px solid #374151;
+  flex-wrap: wrap;
+}
+
+.bar-title {
+  font-size: 11.5px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.btn-redux-action {
+  background: #374151;
+  color: #e5e7eb;
+  border: 1px solid #4b5563;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-redux-action:hover {
+  background: #4b5563;
+  color: #ffffff;
+}
+
+.btn-redux-action.btn-danger {
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-redux-action.btn-danger:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.redux-logs-section {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+}
+
+.redux-logs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  font-size: 11.5px;
+  color: #d1d5db;
+}
+
+.redux-logs-header code {
+  color: #a78bfa;
+}
+
+.redux-logs-list {
+  overflow-y: auto;
+  max-height: 160px;
+  padding: 4px 8px;
+}
+
+.no-redux-logs {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.redux-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.redux-table th {
+  padding: 5px 8px;
+  text-align: left;
+  color: #9ca3af;
+  border-bottom: 1px solid #374151;
+  font-weight: 600;
+}
+
+.redux-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.4);
+}
+
+.action-type-col code {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.payload-col {
+  color: #9ca3af;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duration-col {
+  color: #d1d5db;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.diff-col {
+  color: #10b981;
+  font-size: 10.5px;
+  white-space: nowrap;
+}

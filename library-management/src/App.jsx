@@ -23,6 +23,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Button from "./components/Button";
 import RestApiInspector from "./components/RestApiInspector";
+import ReduxActionInspector from "./components/ReduxActionInspector";
+
+// Redux Toolkit Global Store (Experiment 2)
+import { Provider } from "react-redux";
+import store from "./store";
 
 import "./App.css";
 
@@ -174,25 +179,30 @@ function LibraryLayout() {
       {/* Real-time REST API Network Inspector (Experiment 1) */}
       <RestApiInspector />
 
+      {/* Real-time Redux Toolkit Middleware Monitor (Experiment 2) */}
+      <ReduxActionInspector />
+
       <Footer />
     </div>
   );
 }
 
 /**
- * Root App wrapped in BrowserRouter, AuthProvider, and LibraryProvider
+ * Root App wrapped in Redux Provider, BrowserRouter, AuthProvider, and LibraryProvider
  */
 function App() {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <AuthProvider>
-          <LibraryProvider>
-            <LibraryLayout />
-          </LibraryProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </BrowserRouter>
+    <Provider store={store}>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <AuthProvider>
+            <LibraryProvider>
+              <LibraryLayout />
+            </LibraryProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
