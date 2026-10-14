@@ -330,6 +330,55 @@ const mockRestApiPlugin = () => ({
         }));
       }
 
+      // ===== Experiment 4: Auth Endpoints =====
+
+      // POST /api/auth/login — Requirement a
+      if (req.method === 'POST' && pathname === '/api/auth/login') {
+        let body = '';
+        req.on('data', (chunk: any) => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+            const id = (data.identifier || '').trim().toLowerCase();
+            const pwd = (data.password || '').trim();
+            if (!id || !pwd || pwd.length < 4) {
+              res.statusCode = 401;
+              return res.end(JSON.stringify({ success: false, error: 'Invalid credentials' }));
+            }
+            const user = {
+              memberId: id.includes('@') ? 'AK-LIB-999' : id.toUpperCase(),
+              email: id.includes('@') ? id : `${id}@library.org`,
+              name: 'Aravind Kumar',
+              role: 'Member',
+              membershipTier: 'Gold Scholar'
+            };
+            if (id === 'aravind.kumar@gmail.com' || id === 'ak-lib-101') {
+              user.memberId = 'AK-LIB-101';
+              user.email = 'aravind.kumar@gmail.com';
+            }
+            const token = `srv_${user.memberId}_${Date.now().toString(36)}`;
+            res.statusCode = 200;
+            return res.end(JSON.stringify({ success: true, message: `Welcome back, ${user.name}!`, user, token, expiresIn: 900 }));
+          } catch {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ success: false, error: 'Bad request' }));
+          }
+        });
+        return;
+      }
+
+      // POST /api/auth/logout — Requirement e
+      if (req.method === 'POST' && pathname === '/api/auth/logout') {
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ success: true, message: 'Logged out successfully. Session invalidated.' }));
+      }
+
+      // POST /api/auth/refresh — Requirement f
+      if (req.method === 'POST' && pathname === '/api/auth/refresh') {
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ success: true, message: 'Token refreshed successfully.' }));
+      }
+
       next();
     });
   }

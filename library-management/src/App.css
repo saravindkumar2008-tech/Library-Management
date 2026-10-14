@@ -3891,3 +3891,353 @@ footer {
 .btn-outline:hover {
   background: rgba(37, 99, 235, 0.08);
 }
+
+/* =====================================================
+   EXPERIMENT 4: Authentication & Token Management CSS
+   ===================================================== */
+
+/* --- Token Inspector Toggle Button --- */
+.token-inspector-toggle {
+  position: fixed;
+  bottom: 112px;
+  right: 16px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 8px 10px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #e0e7ff;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(49, 46, 129, 0.5);
+  transition: all 0.2s ease;
+  letter-spacing: 0.4px;
+}
+.token-inspector-toggle:hover {
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.5);
+}
+.token-inspector-icon { font-size: 16px; }
+.token-inspector-label { font-size: 11px; }
+.token-inspector-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* --- Token Inspector Panel --- */
+.token-inspector-panel {
+  position: fixed;
+  bottom: 160px;
+  right: 16px;
+  width: 380px;
+  max-height: 580px;
+  background: #0f172a;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(129, 140, 248, 0.1);
+  z-index: 8999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: tiSlideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tiSlideIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+.token-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-bottom: 1px solid rgba(129, 140, 248, 0.2);
+  flex-shrink: 0;
+}
+.ti-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ti-header-icon { font-size: 22px; }
+.ti-header-title { color: #e0e7ff; font-weight: 700; font-size: 14px; }
+.ti-header-subtitle { color: #818cf8; font-size: 11px; }
+.ti-close-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #e0e7ff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.ti-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* TTL Bar */
+.ti-ttl-bar-wrap {
+  padding: 10px 16px;
+  background: rgba(30, 27, 75, 0.5);
+  border-bottom: 1px solid rgba(129, 140, 248, 0.1);
+  flex-shrink: 0;
+}
+.ti-ttl-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.ti-ttl-bar-track {
+  height: 6px;
+  background: rgba(129, 140, 248, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ti-ttl-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* Tabs */
+.ti-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.15);
+  flex-shrink: 0;
+}
+.ti-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 9px 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.ti-tab:hover { color: #a5b4fc; background: rgba(129, 140, 248, 0.06); }
+.ti-tab.active { color: #818cf8; border-bottom: 2px solid #818cf8; }
+
+/* Body */
+.ti-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(129, 140, 248, 0.3) transparent;
+}
+
+/* Status Tab */
+.ti-status-tab { padding: 12px; }
+.ti-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ti-status-card {
+  background: rgba(30, 27, 75, 0.5);
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+.ti-status-card-icon { font-size: 20px; margin-bottom: 4px; }
+.ti-status-card-label { color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ti-status-card-value { font-weight: 700; font-size: 12px; margin-top: 2px; }
+
+.ti-detail-rows { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.ti-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  gap: 8px;
+}
+.ti-detail-label { color: #64748b; font-size: 11px; flex-shrink: 0; }
+.ti-detail-value { color: #a5b4fc; font-size: 11px; font-family: monospace; word-break: break-all; }
+
+.ti-token-raw {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(129, 140, 248, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.ti-token-raw-label { color: #64748b; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+.ti-token-raw-value {
+  color: #818cf8;
+  font-size: 10px;
+  word-break: break-all;
+  font-family: monospace;
+  line-height: 1.4;
+}
+
+.ti-exp4-notes { display: flex; flex-direction: column; gap: 4px; }
+.ti-exp4-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(30, 27, 75, 0.4);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.ti-exp4-note code { color: #a5b4fc; background: rgba(129,140,248,0.1); padding: 1px 4px; border-radius: 3px; }
+.ti-exp4-note strong { color: #c4b5fd; }
+
+/* Payload Tab */
+.ti-payload-tab { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.ti-payload-section {}
+.ti-payload-title { color: #818cf8; font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+.ti-payload-json {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(129, 140, 248, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #a5b4fc;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+.ti-empty { color: #64748b; font-size: 12px; padding: 8px 0; }
+
+/* Events Tab */
+.ti-events-tab { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.ti-empty-events { text-align: center; padding: 24px 12px; color: #64748b; font-size: 13px; }
+.ti-event-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(30, 27, 75, 0.4);
+  border-left: 3px solid;
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  animation: tiEventIn 0.2s ease;
+}
+@keyframes tiEventIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ti-event-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.ti-event-info { flex: 1; }
+.ti-event-name { font-size: 12px; font-weight: 700; font-family: monospace; }
+.ti-event-time { font-size: 10px; color: #64748b; margin-top: 1px; }
+.ti-event-payload { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ti-event-tag {
+  background: rgba(129, 140, 248, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-family: monospace;
+}
+.ti-event-tag.danger { background: rgba(248, 113, 113, 0.12); color: #f87171; border-color: rgba(248,113,113,0.2); }
+
+/* --- Auth Error Banner (Login Page) --- */
+.auth-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  animation: slideDown 0.25s ease;
+}
+.auth-error-icon { font-size: 20px; flex-shrink: 0; }
+.auth-error-banner > div { flex: 1; }
+.auth-error-banner strong { color: #dc2626; font-size: 13px; }
+.auth-error-banner p { color: #7f1d1d; font-size: 12px; margin-top: 2px; }
+.auth-error-dismiss {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0.7;
+  line-height: 1;
+}
+.auth-error-dismiss:hover { opacity: 1; }
+
+/* --- Token TTL info in current-user-banner --- */
+.token-ttl-info {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.token-ttl-info strong { color: #16a34a; }
+
+/* --- Token Info Panel on LoginPage --- */
+.token-info-panel {
+  margin-top: 20px;
+  background: #0f172a;
+  border: 1px solid rgba(129, 140, 248, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+.token-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.token-info-header strong { color: #e0e7ff; font-size: 13px; }
+.token-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.token-badge.valid { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.token-badge.expired { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.token-badge.none { background: rgba(107, 114, 128, 0.15); color: #94a3b8; border: 1px solid rgba(107,114,128,0.3); }
+
+.token-info-grid { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.token-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: rgba(30, 27, 75, 0.4);
+  border-radius: 6px;
+  gap: 12px;
+}
+.token-info-label { font-size: 11px; color: #64748b; flex-shrink: 0; }
+.token-info-value { font-size: 11px; color: #a5b4fc; font-family: monospace; word-break: break-all; }
+.token-info-value.token-ok { color: #4ade80; }
+.token-info-value.token-expired { color: #f87171; }
+.token-info-value.token-warning { color: #fbbf24; }
+.token-truncated { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+.token-info-note {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+}
+.token-info-note code { color: #a5b4fc; background: rgba(129,140,248,0.1); padding: 1px 4px; border-radius: 3px; }

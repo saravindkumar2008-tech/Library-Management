@@ -24,6 +24,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Button from "./components/Button";
 import RestApiInspector from "./components/RestApiInspector";
 import ReduxActionInspector from "./components/ReduxActionInspector";
+import TokenInspector from "./components/TokenInspector";
 
 // Redux Toolkit Global Store (Experiment 2)
 import { Provider } from "react-redux";
@@ -181,6 +182,9 @@ function LibraryLayout() {
 
       {/* Real-time Redux Toolkit Middleware Monitor (Experiment 2) */}
       <ReduxActionInspector />
+
+      {/* Token Lifecycle Inspector (Experiment 4) */}
+      <TokenInspector />
 
       <Footer />
     </div>

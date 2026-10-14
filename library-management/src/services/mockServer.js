@@ -1,6 +1,6 @@
 /**
  * Mock REST API Engine
- * Simulates a full-fledged REST API server handling endpoints for Experiments 1, 2, and 3:
+ * Simulates a full-fledged REST API server handling endpoints for Experiments 1, 2, 3 & 4:
  *  - GET    /api/books (with query filtering: search, category, author, available)
  *  - GET    /api/books/:id (individual book details, returns 404 if not found)
  *  - POST   /api/books (Create new book - Requirement b)
@@ -13,6 +13,10 @@
  *  - GET    /api/members/current and /api/members/:id
  *  - PUT    /api/members/:id (update member profile)
  *  - GET    /api/recommendations (intelligent recommendations)
+ *  --- Experiment 4 Auth Endpoints ---
+ *  - POST   /api/auth/login   (Requirement a — authenticate member)
+ *  - POST   /api/auth/logout  (Requirement e — invalidate server session)
+ *  - POST   /api/auth/refresh (Requirement f — refresh access token)
  */
 
 import { INITIAL_BOOKS, DEFAULT_MEMBER_DATA } from "./mockData.js";
@@ -498,8 +502,136 @@ export async function mockRestApiHandler(method, path, options = {}) {
     };
   }
 
+  // ========== Experiment 4: Auth Endpoints ==========
+
+  // Requirement a: POST /api/auth/login — Authenticate member with credentials
+  if (method === "POST" && pathname === "/api/auth/login") {
+    const body = options.data || {};
+    const cleanId = (body.identifier || "").trim().toLowerCase();
+    const password = (body.password || "").trim();
+
+    if (!cleanId || !password) {
+      const err = new Error("Member ID/Email and Password are required.");
+      err.status = 400;
+      err.response = { status: 400, data: { error: "Missing credentials" } };
+      throw err;
+    }
+
+    if (password.length < 4) {
+      const err = new Error("Invalid credentials — authentication failed.");
+      err.status = 401;
+      err.response = { status: 401, data: { error: "Invalid credentials" } };
+      throw err;
+    }
+
+    // Match against valid member accounts
+    const validMembers = [
+      {
+        memberId: "AK-LIB-101",
+        email: "aravind.kumar@gmail.com",
+        name: "Aravind Kumar",
+        role: "Member",
+        membershipTier: "Gold Scholar",
+        branch: "AK Central Library, Chennai",
+        joinedDate: "2024-01-15",
+        phone: "+91 98765 43210",
+        maxBooksAllowed: 5,
+        preferredCategories: ["Historical Fiction", "Epic Fiction", "Philosophy & Ethics"]
+      }
+    ];
+
+    const matched = validMembers.find(
+      (u) => u.email.toLowerCase() === cleanId || u.memberId.toLowerCase() === cleanId
+    );
+
+    let user;
+    if (matched) {
+      user = matched;
+    } else {
+      // Dynamic member login (any valid format)
+      const isEmail = cleanId.includes("@");
+      user = {
+        memberId: isEmail ? "AK-LIB-999" : cleanId.toUpperCase(),
+        email: isEmail ? cleanId : `${cleanId}@library.org`,
+        name: isEmail
+          ? cleanId.split("@")[0].replace(".", " ").split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+          : `Member ${cleanId.toUpperCase()}`,
+        role: "Member",
+        membershipTier: "Standard Reader",
+        branch: "AK Central Library, Chennai",
+        joinedDate: new Date().toISOString().split("T")[0],
+        maxBooksAllowed: 3,
+        preferredCategories: ["Historical Fiction"]
+      };
+    }
+
+    // Server-side session token (opaque, distinct from client JWT)
+    const serverToken = `srv_${user.memberId}_${Date.now().toString(36)}`;
+
+    return {
+      status: 200,
+      statusText: "OK",
+      data: {
+        success: true,
+        message: `Welcome back, ${user.name}!`,
+        user,
+        token: serverToken,
+        expiresIn: 900 // 15 minutes in seconds
+      }
+    };
+  }
+
+  // Requirement e: POST /api/auth/logout — Invalidate server session
+  if (method === "POST" && pathname === "/api/auth/logout") {
+    // In production this would blacklist the token server-side
+    return {
+      status: 200,
+      statusText: "OK",
+      data: { success: true, message: "Logged out successfully. Session invalidated." }
+    };
+  }
+
+  // Requirement f: POST /api/auth/refresh — Refresh access token
+  if (method === "POST" && pathname === "/api/auth/refresh") {
+    const body = options.data || {};
+    if (!body.refreshToken) {
+      const err = new Error("Refresh token is required.");
+      err.status = 400;
+      throw err;
+    }
+    // Server just acknowledges — client-side tokenService handles the actual refresh
+    return {
+      status: 200,
+      statusText: "OK",
+      data: { success: true, message: "Token refreshed successfully." }
+    };
+  }
+
+  // Requirement c/d: Protected endpoint auth check
+  // Borrowings, member profile, and hold operations require a valid Authorization header
+  const isProtected =
+    pathname.startsWith("/api/borrowings") ||
+    pathname.startsWith("/api/members/") ||
+    pathname.startsWith("/api/holds");
+
+  if (isProtected) {
+    const authHeader = options.headers?.Authorization || options.headers?.authorization || "";
+    const hasToken = authHeader.startsWith("Bearer ") && authHeader.length > 30;
+    if (!hasToken) {
+      const err = new Error("Unauthorized — valid authentication token required for this operation.");
+      err.status = 401;
+      err.response = {
+        status: 401,
+        statusText: "Unauthorized",
+        data: { error: "Missing or invalid Authorization token", code: "TOKEN_REQUIRED" }
+      };
+      throw err;
+    }
+  }
+
   // Fallback 404
   const error = new Error(`Endpoint ${method} ${pathname} not found`);
   error.status = 404;
   throw error;
 }
+

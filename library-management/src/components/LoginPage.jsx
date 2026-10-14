@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth, DEFAULT_USERS } from "../context/AuthContext";
 import { useLibrary } from "../context/LibraryContext";
+import { getTokenStatus } from "../services/tokenService";
 import Input from "./Input";
 import Button from "./Button";
 import {
@@ -10,29 +11,41 @@ import {
 } from "../utils/validation";
 
 /**
- * Login Component (Controlled Components with Validation)
- * Topics: Controlled components, form validation, AuthContext, redirect on login
+ * LoginPage Component — Experiment 4: Authentication & Token Management
+ *
+ * Requirement a: Member login using authentication API (POST /api/auth/login)
+ * Requirement b: Token displayed + stored after successful login
+ * Requirement d: Shows access-restricted notice when redirected from protected route
+ * Requirement e: Logout button calls API + clears tokens
+ * Requirement f: Displays token error states (expired, invalid, missing)
  */
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, currentUser, login, logout, switchAccount } = useAuth();
+  const { isAuthenticated, currentUser, authError, authLoading, login, logout, switchAccount, setAuthError } = useAuth();
   const { setMember } = useLibrary();
 
   // Controlled component states
   const [identifier, setIdentifier] = useState(currentUser?.memberId || "");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
 
   // Field validation error states
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // e) Destination to redirect to after successful login
-  const redirectTarget = location.state?.from?.pathname || "/member";
+  // Token status for live display (Requirement b, f)
+  const [tokenStatus, setTokenStatus] = useState(() => getTokenStatus());
 
-  // Validate on blur or change
+  // Refresh token status display on mount + after login/logout
+  useEffect(() => {
+    setTokenStatus(getTokenStatus());
+  }, [isAuthenticated]);
+
+  const redirectTarget = location.state?.from?.pathname || "/member";
+  const expiredRedirect = location.state?.reason === "TOKEN_EXPIRED";
+  const unauthorizedRedirect = location.state?.reason === "UNAUTHORIZED";
+
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validateField(field);
@@ -46,55 +59,63 @@ export function LoginPage() {
       else delete newErrors.identifier;
     }
     if (field === "password") {
-      const err = validatePassword(password, 4); // allow 4+ PIN/password
+      const err = validatePassword(password, 4);
       if (err) newErrors.password = err;
       else delete newErrors.password;
     }
     setErrors(newErrors);
   };
 
-  const handleSubmit = (e) => {
+  /**
+   * Requirement a: Submit credentials to the authentication API
+   */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Mark all as touched
     setTouched({ identifier: true, password: true });
+    setAuthError(null);
 
-    // Validate all fields
     const idErr = validateLoginIdentifier(identifier);
     const pwdErr = validatePassword(password, 4);
-
     if (idErr || pwdErr) {
-      setErrors({
-        identifier: idErr,
-        password: pwdErr
-      });
+      setErrors({ identifier: idErr, password: pwdErr });
       return;
     }
 
-    setLoading(true);
+    // Call real login API (Requirement a)
+    const result = await login({ identifier, password, rememberMe });
 
-    setTimeout(() => {
-      const result = login({ identifier, password, rememberMe });
-      if (result.success) {
-        // Also update LibraryContext member profile
-        setMember(result.user);
-        setLoading(false);
-        // e) After successful login, redirect the member to the requested protected page
-        navigate(redirectTarget, { replace: true });
-      }
-    }, 400);
+    if (result.success) {
+      setMember(result.user);
+      setTokenStatus(getTokenStatus());
+      navigate(redirectTarget, { replace: true });
+    }
   };
 
-  const handleDemoLogin = (user) => {
-    switchAccount(user);
-    setMember(user);
+  const handleDemoLogin = async (user) => {
+    // Quick-switch also goes through API flow
+    const result = await login({ identifier: user.email, password: "demo1234", rememberMe: true });
+    if (result.success) {
+      setMember(result.user);
+    } else {
+      // Fallback: switchAccount (no API)
+      switchAccount(user);
+      setMember(user);
+    }
+    setTokenStatus(getTokenStatus());
     navigate(redirectTarget, { replace: true });
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setIdentifier("");
     setPassword("");
+    setTokenStatus(getTokenStatus());
+  };
+
+  const formatTTL = (seconds) => {
+    if (!seconds) return "Expired";
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
   };
 
   return (
@@ -110,27 +131,62 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Requested protected route notice if redirected */}
+          {/* Requirement d: Redirect notice from protected route */}
           {location.state?.from && (
             <div className="protected-redirect-notice" role="alert">
-              <span>🔒</span>
+              <span>{expiredRedirect ? "⏰" : unauthorizedRedirect ? "🚫" : "🔒"}</span>
               <div>
-                <strong>Authentication Required</strong>
+                <strong>
+                  {expiredRedirect
+                    ? "Session Expired"
+                    : unauthorizedRedirect
+                      ? "Access Denied"
+                      : "Authentication Required"}
+                </strong>
                 <p>
-                  You must be signed in to access <code>{location.state.from.pathname}</code>.
-                  Please sign in below to continue.
+                  {expiredRedirect
+                    ? "Your session token has expired. Please sign in again to continue."
+                    : unauthorizedRedirect
+                      ? "You do not have permission to access this resource."
+                      : `You must be signed in to access `}
+                  {!expiredRedirect && !unauthorizedRedirect && (
+                    <code>{location.state.from.pathname}</code>
+                  )}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Active Session Status */}
+          {/* Requirement f: Auth/Token error display */}
+          {authError && (
+            <div className="auth-error-banner" role="alert">
+              <span className="auth-error-icon">⚠️</span>
+              <div>
+                <strong>Authentication Error</strong>
+                <p>{authError}</p>
+              </div>
+              <button
+                className="auth-error-dismiss"
+                onClick={() => setAuthError(null)}
+                aria-label="Dismiss error"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {/* Active Session + Token Status (Requirement b) */}
           {isAuthenticated && (
             <div className="current-user-banner">
               <div className="status-dot online"></div>
               <div className="session-info">
                 <p className="status-label">Active Member Session:</p>
                 <strong>{currentUser?.name || "Member"}</strong> ({currentUser?.memberId})
+                {tokenStatus.accessValid && (
+                  <p className="token-ttl-info">
+                    🔑 Token valid · expires in <strong>{formatTTL(tokenStatus.accessTTL)}</strong>
+                  </p>
+                )}
               </div>
               <div className="session-actions">
                 <Button
@@ -151,7 +207,7 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Controlled Component Login Form with Validation */}
+          {/* Controlled Component Login Form */}
           <form onSubmit={handleSubmit} className="login-form" noValidate>
             <Input
               label="Member ID or Email Address"
@@ -212,7 +268,7 @@ export function LoginPage() {
               variant="primary"
               size="lg"
               fullWidth
-              loading={loading}
+              loading={authLoading}
               icon="🔓"
               id="btn-login-submit"
             >
@@ -220,7 +276,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          {/* Quick Demo Switcher with Controlled Auto-Fill */}
+          {/* Quick Demo Switcher */}
           <div className="quick-switch-section">
             <p className="quick-switch-title">Quick Demo Login: Select Member Account</p>
             <div className="demo-accounts-grid">
@@ -231,6 +287,7 @@ export function LoginPage() {
                   className={`demo-acc-btn ${currentUser?.memberId === acc.memberId && isAuthenticated ? "active" : ""}`}
                   onClick={() => handleDemoLogin(acc)}
                   title={`Sign in as ${acc.name}`}
+                  disabled={authLoading}
                 >
                   <div className="demo-acc-name">
                     {acc.name} {currentUser?.memberId === acc.memberId && isAuthenticated && "✓"}
@@ -241,6 +298,65 @@ export function LoginPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Requirement b: Token Info Panel */}
+          <div className="token-info-panel">
+            <div className="token-info-header">
+              <span>🔐</span>
+              <strong>Authentication Token Status</strong>
+              <span className={`token-badge ${tokenStatus.accessValid ? "valid" : tokenStatus.hasToken ? "expired" : "none"}`}>
+                {tokenStatus.accessValid ? "VALID" : tokenStatus.hasToken ? "EXPIRED" : "NO TOKEN"}
+              </span>
+            </div>
+
+            <div className="token-info-grid">
+              <div className="token-info-row">
+                <span className="token-info-label">Access Token</span>
+                <code className="token-info-value token-truncated">
+                  {tokenStatus.accessToken || "—"}
+                </code>
+              </div>
+              <div className="token-info-row">
+                <span className="token-info-label">Member</span>
+                <span className="token-info-value">
+                  {tokenStatus.accessPayload?.sub || "—"}
+                </span>
+              </div>
+              <div className="token-info-row">
+                <span className="token-info-label">Role</span>
+                <span className="token-info-value">
+                  {tokenStatus.accessPayload?.role || "—"}
+                </span>
+              </div>
+              <div className="token-info-row">
+                <span className="token-info-label">Access Expires</span>
+                <span className={`token-info-value ${tokenStatus.accessTTL < 60 && tokenStatus.accessTTL > 0 ? "token-warning" : ""}`}>
+                  {tokenStatus.accessTTL > 0 ? formatTTL(tokenStatus.accessTTL) : "Expired"}
+                </span>
+              </div>
+              <div className="token-info-row">
+                <span className="token-info-label">Refresh Token</span>
+                <span className={`token-info-value ${tokenStatus.refreshValid ? "token-ok" : "token-expired"}`}>
+                  {tokenStatus.refreshValid
+                    ? `Valid (${formatTTL(tokenStatus.refreshTTL)} remaining)`
+                    : "Expired — re-login required"}
+                </span>
+              </div>
+              <div className="token-info-row">
+                <span className="token-info-label">Issued At</span>
+                <span className="token-info-value">
+                  {tokenStatus.meta?.issuedAt
+                    ? new Date(tokenStatus.meta.issuedAt).toLocaleTimeString()
+                    : "—"}
+                </span>
+              </div>
+            </div>
+
+            <p className="token-info-note">
+              ℹ️ Tokens are stored in <code>localStorage</code> and automatically attached as{" "}
+              <code>Authorization: Bearer &lt;token&gt;</code> headers on protected API requests.
+            </p>
           </div>
 
           <div className="login-footer-links">

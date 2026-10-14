@@ -1,12 +1,14 @@
 /**
  * Axios REST API Client
  * Configured with baseURL, request/response interceptors, auth headers, and event logging.
+ * Requirement c: Attaches the live JWT token to every protected API request.
  */
 
 import axios from "axios";
 import { apiConfig } from "./apiConfig";
 import { apiEventHub } from "./apiEventHub";
 import { mockRestApiHandler } from "./mockServer";
+import { getValidToken } from "./tokenService";
 
 // Create custom Axios instance
 export const axiosInstance = axios.create({
@@ -18,11 +20,15 @@ export const axiosInstance = axios.create({
   }
 });
 
-// Request Interceptor: Attach Auth token, Timestamp, and metadata
+// Request Interceptor: Attach live Auth token (Requirement c), Timestamp, and metadata
 axiosInstance.interceptors.request.use(
   (config) => {
     config.metadata = { startTime: Date.now() };
-    config.headers["Authorization"] = "Bearer lib-jwt-token-aravind-101";
+    // Requirement c: Attach the current valid JWT token (auto-refreshes if expired)
+    const token = getValidToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     config.headers["X-Requested-With"] = "AxiosClient";
     return config;
   },
@@ -82,9 +88,13 @@ export async function axiosRequest({ method = "GET", url, params, data, signal }
     }
   }
 
+  // Requirement c: Attach Authorization header to mock API handler as well
+  const token = getValidToken();
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   try {
     // If error simulation or delay is active, or dev environment mock server
-    const res = await mockRestApiHandler(method, fullUrl, { data, signal });
+    const res = await mockRestApiHandler(method, fullUrl, { data, signal, headers: authHeaders });
     const durationMs = Date.now() - startTime;
 
     apiEventHub.logRequest({
