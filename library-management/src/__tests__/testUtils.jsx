@@ -7,8 +7,8 @@ import { render } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
-import libraryReducer from "../../store/librarySlice";
-import { INITIAL_BOOKS, DEFAULT_MEMBER_DATA } from "../../services/mockData";
+import libraryReducer from "../store/librarySlice";
+import { INITIAL_BOOKS, DEFAULT_MEMBER_DATA } from "../services/mockData";
 
 // ---------------------------------------------------------------------------
 // Default preloaded state
