@@ -1,31 +1,74 @@
 import { apiClient } from "./apiClient";
+import { apiCache } from "./apiCache";
 
 export const bookService = {
   /**
-   * Requirement a: Retrieve books using GET
+   * Requirement a: Retrieve books using GET with caching & deduplication
    * GET /api/books?search={search}&category={category}&author={author}&available={available}
    */
-  async fetchBooks({ search = "", category = "All", author = "All", available = "All", signal } = {}) {
+  async fetchBooks({ search = "", category = "All", author = "All", available = "All", signal, bypassCache = false } = {}) {
     const params = {};
     if (search && search.trim()) params.search = search.trim();
     if (category && category !== "All") params.category = category;
     if (author && author !== "All") params.author = author;
     if (available && available !== "All") params.available = available;
 
-    const response = await apiClient.get("/books", { params, signal });
-    return response.books || [];
+    const cacheKey = apiCache.generateKey("GET", "/books", params);
+
+    if (bypassCache) {
+      const response = await apiClient.get("/books", { params, signal });
+      apiCache.set(cacheKey, response.books || []);
+      return response.books || [];
+    }
+
+    return apiCache.fetchWithCache(
+      cacheKey,
+      async () => {
+        const response = await apiClient.get("/books", { params, signal });
+        return response.books || [];
+      },
+      { ttl: 45000, staleWhileRevalidate: true }
+    );
   },
 
   /**
-   * Requirement a: Retrieve individual book details using GET
+   * Requirement a: Retrieve individual book details using GET with caching
    * GET /api/books/:id
    */
-  async fetchBookById(id, { signal } = {}) {
+  async fetchBookById(id, { signal, bypassCache = false } = {}) {
     if (!id) {
       throw new Error("Book ID is required to fetch book details");
     }
-    const response = await apiClient.get(`/books/${id}`, { signal });
-    return response.book;
+    const cacheKey = apiCache.generateKey("GET", `/books/${id}`);
+
+    if (bypassCache) {
+      const response = await apiClient.get(`/books/${id}`, { signal });
+      if (response && response.book) {
+        apiCache.set(cacheKey, response.book);
+      }
+      return response.book;
+    }
+
+    return apiCache.fetchWithCache(
+      cacheKey,
+      async () => {
+        const response = await apiClient.get(`/books/${id}`, { signal });
+        return response.book;
+      },
+      { ttl: 60000, staleWhileRevalidate: true }
+    );
+  },
+
+  /**
+   * Prefetch book details into cache ahead of time (e.g. on card hover)
+   */
+  prefetchBook(id) {
+    if (!id) return;
+    const cacheKey = apiCache.generateKey("GET", `/books/${id}`);
+    const existing = apiCache.get(cacheKey);
+    if (!existing || existing.isStale) {
+      this.fetchBookById(id).catch(() => {});
+    }
   },
 
   /**
@@ -37,6 +80,8 @@ export const bookService = {
       throw new Error("Book Title and Author are required to add a new book.");
     }
     const response = await apiClient.post("/books", bookData);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/recommendations");
     return response.book;
   },
 
@@ -49,6 +94,9 @@ export const bookService = {
       throw new Error("Book ID is required for update.");
     }
     const response = await apiClient.put(`/books/${id}`, bookData);
+    apiCache.invalidate(`/books/${id}`);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/recommendations");
     return response.book;
   },
 
@@ -61,6 +109,9 @@ export const bookService = {
       throw new Error("Book ID is required to delete.");
     }
     const response = await apiClient.delete(`/books/${id}`);
+    apiCache.invalidate(`/books/${id}`);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/recommendations");
     return response;
   },
 
@@ -75,6 +126,9 @@ export const bookService = {
       durationDays,
       notes
     });
+    apiCache.invalidate(`/books/${bookId}`);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/borrowings");
     return response.borrowing;
   },
 
@@ -87,6 +141,9 @@ export const bookService = {
       rating,
       notes
     });
+    apiCache.invalidate(`/books/${idOrBookId}`);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/borrowings");
     return response;
   },
 
@@ -98,6 +155,9 @@ export const bookService = {
     const response = await apiClient.patch(`/borrowings/${idOrBookId}/renew`, {
       extensionDays
     });
+    apiCache.invalidate(`/books/${idOrBookId}`);
+    apiCache.invalidate("/books");
+    apiCache.invalidate("/borrowings");
     return response.borrowing;
   },
 
@@ -107,6 +167,8 @@ export const bookService = {
    */
   async updateBookAvailability(id, available) {
     const response = await apiClient.patch(`/books/${id}`, { available });
+    apiCache.invalidate(`/books/${id}`);
+    apiCache.invalidate("/books");
     return response.book;
   },
 
@@ -120,7 +182,16 @@ export const bookService = {
       params.category = category;
     }
 
-    const response = await apiClient.get("/recommendations", { params, signal });
-    return response.recommendations || [];
+    const cacheKey = apiCache.generateKey("GET", "/recommendations", params);
+    return apiCache.fetchWithCache(
+      cacheKey,
+      async () => {
+        const response = await apiClient.get("/recommendations", { params, signal });
+        return response.recommendations || [];
+      },
+      { ttl: 60000, staleWhileRevalidate: true }
+    );
   }
 };
+
+export default bookService;

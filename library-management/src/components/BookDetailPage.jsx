@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLibrary } from "../context/LibraryContext";
 import { bookService } from "../services/bookService";
 import Loading from "./common/Loading";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 import BookFormModal from "./BookFormModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
@@ -137,10 +138,7 @@ function BookDetailPage() {
 
       <div className="book-detail-card">
         <div className="book-detail-cover">
-          <div className="book-cover-art">
-            <span className="cover-icon">📚</span>
-            <span className="cover-category-badge">{book.category}</span>
-          </div>
+          <OptimizedBookCover book={book} size="lg" />
           <div className="book-callout-box">
             <p><strong>Catalog ID:</strong> #{book.id}</p>
             <p><strong>ISBN:</strong> {book.isbn || "978-81846800" + (book.id % 10)}</p>

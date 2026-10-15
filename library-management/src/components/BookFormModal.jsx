@@ -93,12 +93,27 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
 
   const isEdit = mode === "edit";
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-container book-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={onClose} role="presentation">
+      <div
+        className="modal-container book-form-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="book-form-title"
+      >
         <div className="modal-header">
           <div>
-            <h2>{isEdit ? "✏️ Edit Book (PUT / PATCH)" : "➕ Add New Book (POST)"}</h2>
+            <h2 id="book-form-title">{isEdit ? "✏️ Edit Book (PUT / PATCH)" : "➕ Add New Book (POST)"}</h2>
             <p className="modal-subtitle">
               {isEdit
                 ? `Update book information for "${initialBook?.title}" via REST API`
