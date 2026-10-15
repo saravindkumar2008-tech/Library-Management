@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { useLibrary } from "../context/LibraryContext";
-import BookList from "./BookList";
 import SearchBar from "./SearchBar";
 import FilterPanel from "./FilterPanel";
-import Recommendations from "./Recommendations";
-import BookFormModal from "./BookFormModal";
+import { BookGridSkeleton } from "./common/Skeletons";
+
+// Lazy load components with React Suspense for maximum performance
+const BookList = lazy(() => import("./BookList"));
+const Recommendations = lazy(() => import("./Recommendations"));
+const BookFormModal = lazy(() => import("./BookFormModal"));
+const WebBookSearchModal = lazy(() => import("./WebBookSearchModal"));
 
 function Home() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
 
   const {
     books,
@@ -177,12 +182,20 @@ function Home() {
         <div className="search-meta-hint">
           <span>🔍 Dynamic API query filtering (debounced with request cancellation):</span>
         </div>
-        <SearchBar />
+        <SearchBar onOpenWebSearch={() => setIsWebSearchOpen(true)} />
         <FilterPanel />
       </div>
 
-      {/* API-Based Recommendations Section (Requirement f) */}
-      <Recommendations />
+      {/* API-Based Recommendations Section with Suspense (Requirement f) */}
+      <Suspense
+        fallback={
+          <div className="recommendations-section" style={{ minHeight: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>✨ Loading personalized recommendations...</span>
+          </div>
+        }
+      >
+        <Recommendations />
+      </Suspense>
 
       {/* Book Catalog Header */}
       <div className="catalog-header">
@@ -192,7 +205,7 @@ function Home() {
             {books.length} {books.length === 1 ? "book" : "books"} loaded via REST API
           </span>
         </div>
-        <div className="catalog-refresh-btn-wrap" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div className="catalog-refresh-btn-wrap" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <button
             type="button"
             className="btn-primary"
@@ -202,25 +215,66 @@ function Home() {
           >
             ➕ Add New Book (POST API)
           </button>
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={() => setIsWebSearchOpen(true)}
+            id="btn-web-search-books"
+            title="Search books & cover images from Open Library Web"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(37, 99, 235, 0.15)",
+              color: "#3b82f6",
+              border: "1px solid #3b82f6",
+              borderRadius: "8px",
+              padding: "8px 14px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "0.9rem"
+            }}
+          >
+            🌐 Search Web (Open Library)
+          </button>
           <button className="btn-secondary" onClick={refetchBooks} title="Re-fetch catalog from REST API">
             🔄 Refresh Catalog
           </button>
         </div>
       </div>
 
-      {/* Book List with Async Loading and Error States */}
-      <BookList />
+      {/* Book List with Suspense Loading and Error States */}
+      <Suspense fallback={<BookGridSkeleton count={8} title="Loading catalog..." />}>
+        <BookList />
+      </Suspense>
 
       {/* Add New Book Modal (POST CRUD) */}
-      <BookFormModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        mode="create"
-        onSubmit={async (payload) => {
-          await addBook(payload);
-          setIsAddModalOpen(false);
-        }}
-      />
+      {isAddModalOpen && (
+        <Suspense fallback={null}>
+          <BookFormModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            mode="create"
+            onSubmit={async (payload) => {
+              await addBook(payload);
+              setIsAddModalOpen(false);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Web Book & Image Search Modal (Open Library / Google Books) */}
+      {isWebSearchOpen && (
+        <Suspense fallback={null}>
+          <WebBookSearchModal
+            isOpen={isWebSearchOpen}
+            onClose={() => setIsWebSearchOpen(false)}
+            onAddBook={async (payload) => {
+              await addBook(payload);
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

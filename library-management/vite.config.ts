@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-const SEED_BOOKS = [
+const SEED_BOOKS: any[] = [
   {
     id: 101,
     title: "Ponniyin Selvan",
@@ -11,6 +11,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.9,
     isbn: "978-8184680010",
+    coverImage: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
     description: "A monumental 5-volume historical fiction classic portraying the early life of Rajaraja Chola I and the Chola empire intrigues."
   },
   {
@@ -22,6 +23,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.8,
     isbn: "978-8184680027",
+    coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
     description: "Set during the 7th century Pallava-Chalukya conflicts, centered around the sculptor Sivagami and King Narasimhavarman I."
   },
   {
@@ -33,6 +35,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 5.0,
     isbn: "978-8184680034",
+    coverImage: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80",
     description: "A timeless ancient masterpiece containing 1,330 couplets covering virtue (Aram), wealth (Porul), and love (Inbam)."
   },
   {
@@ -44,6 +47,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.7,
     isbn: "978-8184680041",
+    coverImage: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=600&q=80",
     description: "Sahitya Akademi award-winning epic novel chronicling 600 years of the history and guardianship of Madurai."
   },
   {
@@ -55,6 +59,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.9,
     isbn: "978-8184680058",
+    coverImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
     description: "The gripping legend of the valiant chieftain Pari, king of Parambu Nadu, defying the combined might of the three great dynasties."
   },
   {
@@ -66,6 +71,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.6,
     isbn: "978-8184680065",
+    coverImage: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80",
     description: "A pioneering Tamil sci-fi dystopian saga featuring totalitarian rule, androids, and the robot dog Jeeno."
   },
   {
@@ -77,6 +83,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.7,
     isbn: "978-8184680072",
+    coverImage: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80",
     description: "The inspiring narrative of Chola Prince Vikraman fulfilling his father King Parthiban's dream of Chola restoration."
   },
   {
@@ -88,6 +95,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.8,
     isbn: "978-8184680089",
+    coverImage: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80",
     description: "A celebrated Sahitya Akademi-winning tale of migration, folk resilience, and life in the arid Karisal country."
   },
   {
@@ -99,6 +107,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.9,
     isbn: "978-8184680096",
+    coverImage: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=600&q=80",
     description: "One of the Five Great Epics of Tamil literature, following Kannagi's relentless quest for justice against the Pandyan king."
   },
   {
@@ -110,6 +119,7 @@ const SEED_BOOKS = [
     available: true,
     rating: 4.8,
     isbn: "978-8184680102",
+    coverImage: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80",
     description: "An adventurous historical naval romance following the expeditions of the Chola navy across Southeast Asian waters."
   }
 ];
@@ -184,6 +194,7 @@ const mockRestApiPlugin = () => ({
               rating: Number(data.rating) || 4.5,
               isbn: data.isbn || `978-818468${maxId + 1}`,
               pages: Number(data.pages) || 350,
+              coverImage: data.coverImage || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
               description: data.description || "A recently added literary addition."
             };
             SEED_BOOKS.unshift(newBook);

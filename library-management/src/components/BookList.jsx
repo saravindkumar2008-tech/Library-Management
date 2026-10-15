@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { useLibrary } from "../context/LibraryContext";
 import BookCard from "./BookCard";
 import Loading from "./common/Loading";
-import BookFormModal from "./BookFormModal";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+
+const BookFormModal = lazy(() => import("./BookFormModal"));
+const DeleteConfirmModal = lazy(() => import("./DeleteConfirmModal"));
 
 /**
  * BookList Component
@@ -103,27 +104,35 @@ function BookList() {
       </div>
 
       {/* Edit Book Modal (PUT/PATCH CRUD) */}
-      <BookFormModal
-        isOpen={Boolean(editingBook)}
-        onClose={() => setEditingBook(null)}
-        initialBook={editingBook}
-        mode="edit"
-        onSubmit={async (payload) => {
-          await updateBook(editingBook.id, payload);
-          setEditingBook(null);
-        }}
-      />
+      {Boolean(editingBook) && (
+        <Suspense fallback={null}>
+          <BookFormModal
+            isOpen={Boolean(editingBook)}
+            onClose={() => setEditingBook(null)}
+            initialBook={editingBook}
+            mode="edit"
+            onSubmit={async (payload) => {
+              await updateBook(editingBook.id, payload);
+              setEditingBook(null);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Delete Book Confirmation Modal (DELETE CRUD) */}
-      <DeleteConfirmModal
-        isOpen={Boolean(deletingBook)}
-        onClose={() => setDeletingBook(null)}
-        book={deletingBook}
-        onConfirm={async (id) => {
-          await deleteBook(id);
-          setDeletingBook(null);
-        }}
-      />
+      {Boolean(deletingBook) && (
+        <Suspense fallback={null}>
+          <DeleteConfirmModal
+            isOpen={Boolean(deletingBook)}
+            onClose={() => setDeletingBook(null)}
+            book={deletingBook}
+            onConfirm={async (id) => {
+              await deleteBook(id);
+              setDeletingBook(null);
+            }}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

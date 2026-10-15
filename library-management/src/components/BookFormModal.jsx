@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import Button from "./Button";
 import Input from "./Input";
 import { sanitizeObject } from "../utils/security";
+import { webBookService } from "../services/webBookService";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 
 /**
  * BookFormModal Component
  * Handles adding new books (POST) and updating existing books (PUT/PATCH).
- * Displays loading spinners and handles validation errors.
+ * Includes web book cover search and live image lazy loading preview.
  * Satisfies Experiment 3 Requirements b, c, f.
  */
 export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, mode = "create" }) {
@@ -19,11 +21,17 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
     isbn: "",
     pages: 350,
     available: true,
+    coverImage: "",
     description: ""
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Web cover search state
+  const [searchingCovers, setSearchingCovers] = useState(false);
+  const [coverSuggestions, setCoverSuggestions] = useState([]);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
 
   useEffect(() => {
     if (initialBook) {
@@ -36,6 +44,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
         isbn: initialBook.isbn || "",
         pages: initialBook.pages || 350,
         available: initialBook.available !== undefined ? initialBook.available : true,
+        coverImage: initialBook.coverImage || "",
         description: initialBook.description || ""
       });
     } else {
@@ -48,10 +57,13 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
         isbn: `978-818468${Math.floor(1000 + Math.random() * 9000)}`,
         pages: 350,
         available: true,
+        coverImage: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
         description: ""
       });
     }
     setError(null);
+    setShowCoverPicker(false);
+    setCoverSuggestions([]);
   }, [initialBook, isOpen]);
 
   if (!isOpen) return null;
@@ -62,6 +74,28 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
+  };
+
+  const handleSearchWebCovers = async () => {
+    setSearchingCovers(true);
+    setShowCoverPicker(true);
+    try {
+      const candidates = await webBookService.searchCoversForBook(
+        formData.title,
+        formData.author,
+        formData.isbn
+      );
+      setCoverSuggestions(candidates);
+    } catch (err) {
+      console.warn("Cover search failed:", err);
+    } finally {
+      setSearchingCovers(false);
+    }
+  };
+
+  const handleSelectCover = (url) => {
+    setFormData((prev) => ({ ...prev, coverImage: url }));
+    setShowCoverPicker(false);
   };
 
   const handleSubmit = async (e) => {
@@ -80,7 +114,8 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
         ...sanitized,
         year: Number(sanitized.year) || new Date().getFullYear(),
         rating: Number(sanitized.rating) || 4.5,
-        pages: Number(sanitized.pages) || 300
+        pages: Number(sanitized.pages) || 300,
+        coverImage: sanitized.coverImage || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"
       };
 
       await onSubmit(payload);
@@ -112,6 +147,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
         role="dialog"
         aria-modal="true"
         aria-labelledby="book-form-title"
+        style={{ maxWidth: "720px", width: "95%" }}
       >
         <div className="modal-header">
           <div>
@@ -223,6 +259,105 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
                 Available for Immediate Checkout
               </label>
             </div>
+          </div>
+
+          {/* Book Cover Image Search from Web */}
+          <div className="cover-image-section" style={{ marginTop: "16px", padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid var(--border)" }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--text-primary)" }}>
+              🖼️ Book Cover Image (Web Search & URL)
+            </label>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "240px" }}>
+                <Input
+                  name="coverImage"
+                  value={formData.coverImage}
+                  onChange={handleChange}
+                  placeholder="Paste image URL or search from web below..."
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSearchWebCovers}
+                loading={searchingCovers}
+                icon="🌐"
+              >
+                {searchingCovers ? "Searching Web..." : "Find Cover from Web"}
+              </Button>
+            </div>
+
+            {/* Candidate Web Covers Picker */}
+            {showCoverPicker && (
+              <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px dashed var(--border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+                    Select a web cover image:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoverPicker(false)}
+                    style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "0.78rem" }}
+                  >
+                    Hide
+                  </button>
+                </div>
+                <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "8px" }}>
+                  {coverSuggestions.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleSelectCover(item.url)}
+                      style={{
+                        width: "80px",
+                        flexShrink: 0,
+                        cursor: "pointer",
+                        border: formData.coverImage === item.url ? "2px solid var(--primary)" : "1px solid var(--border)",
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                        background: "var(--surface)",
+                        transition: "all 0.2s ease"
+                      }}
+                      title={`Select ${item.label} (${item.source})`}
+                    >
+                      <img
+                        src={item.url}
+                        alt={item.label}
+                        loading="lazy"
+                        decoding="async"
+                        style={{ width: "100%", height: "100px", objectFit: "cover", display: "block" }}
+                      />
+                      <div style={{ fontSize: "0.68rem", padding: "2px 4px", textAlign: "center", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                        {item.source}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Live Cover Preview */}
+            {formData.coverImage && (
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "12px" }}>
+                <div style={{ width: "60px" }}>
+                  <OptimizedBookCover
+                    book={{
+                      title: formData.title || "Book",
+                      author: formData.author,
+                      category: formData.category,
+                      coverImage: formData.coverImage
+                    }}
+                    size="sm"
+                    showBadge={false}
+                  />
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                  <span style={{ color: "var(--success)", fontWeight: 600 }}>✓ Cover attached</span>
+                  <p style={{ margin: "2px 0 0 0", wordBreak: "break-all", fontSize: "0.75rem", maxHeight: "32px", overflow: "hidden" }}>
+                    {formData.coverImage}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="input-group" style={{ marginTop: "16px" }}>

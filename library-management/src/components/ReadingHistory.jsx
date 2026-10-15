@@ -1,5 +1,6 @@
 import React from "react";
 import { useLibrary } from "../context/LibraryContext";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 
 function ReadingHistory() {
   const { readingHistory } = useLibrary();
@@ -31,19 +32,26 @@ function ReadingHistory() {
                 <span className="history-status-badge">✓ Returned & Completed</span>
               </div>
 
-              <h3>{book.title}</h3>
-              <p>
-                <strong>Author:</strong> {book.author}
-              </p>
-              <p>
-                <strong>Category:</strong> {book.category}
-              </p>
-              <p>
-                <strong>Published:</strong> {book.year}
-              </p>
-              <p className="return-date">
-                <strong>Returned On:</strong> {book.returnedDate || "Recently"}
-              </p>
+              <div style={{ display: "flex", gap: "14px", marginTop: "10px" }}>
+                <div style={{ width: "65px", flexShrink: 0 }}>
+                  <OptimizedBookCover book={book} size="sm" showBadge={false} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ margin: "0 0 6px 0", fontSize: "1.05rem" }}>{book.title}</h3>
+                  <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem" }}>
+                    <strong>Author:</strong> {book.author}
+                  </p>
+                  <p style={{ margin: "0 0 4px 0", fontSize: "0.82rem" }}>
+                    <strong>Category:</strong> {book.category}
+                  </p>
+                  <p style={{ margin: "0 0 4px 0", fontSize: "0.82rem" }}>
+                    <strong>Published:</strong> {book.year}
+                  </p>
+                  <p className="return-date" style={{ margin: "4px 0 0 0", fontSize: "0.8rem", color: "var(--success)" }}>
+                    <strong>Returned On:</strong> {book.returnedDate || "Recently"}
+                  </p>
+                </div>
+              </div>
             </div>
           ))}
         </div>

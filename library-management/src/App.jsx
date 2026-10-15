@@ -26,9 +26,11 @@ const NotFoundPage = lazy(() => import("./components/NotFoundPage"));
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Button from "./components/Button";
-import RestApiInspector from "./components/RestApiInspector";
-import ReduxActionInspector from "./components/ReduxActionInspector";
-import TokenInspector from "./components/TokenInspector";
+
+// Lazy-loaded Developer Inspector Components
+const RestApiInspector = lazy(() => import("./components/RestApiInspector"));
+const ReduxActionInspector = lazy(() => import("./components/ReduxActionInspector"));
+const TokenInspector = lazy(() => import("./components/TokenInspector"));
 
 // Redux Toolkit Global Store
 import { Provider } from "react-redux";
@@ -219,14 +221,12 @@ function LibraryLayout() {
         </ErrorBoundary>
       </main>
 
-      {/* Real-time REST API Network Inspector */}
-      <RestApiInspector />
-
-      {/* Real-time Redux Toolkit Middleware Monitor */}
-      <ReduxActionInspector />
-
-      {/* Token Lifecycle Inspector */}
-      <TokenInspector />
+      {/* Real-time Developer Inspectors (Lazy Loaded with Suspense) */}
+      <Suspense fallback={null}>
+        <RestApiInspector />
+        <ReduxActionInspector />
+        <TokenInspector />
+      </Suspense>
 
       <Footer />
     </div>

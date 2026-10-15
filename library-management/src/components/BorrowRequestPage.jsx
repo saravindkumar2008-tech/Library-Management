@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import Input from "./Input";
 import Button from "./Button";
 import BookStatus from "./BookStatus";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 import { validateBorrowForm } from "../utils/validation";
 
 /**
@@ -170,7 +171,9 @@ export function BorrowRequestPage() {
           <form onSubmit={handleSubmit} className="request-form" noValidate>
             {/* Book Summary Card */}
             <div className="request-summary-box">
-              <div className="summary-thumb">📖</div>
+              <div style={{ width: "65px", flexShrink: 0 }}>
+                <OptimizedBookCover book={book} size="sm" showBadge={false} />
+              </div>
               <div className="summary-info">
                 <h3>{book.title}</h3>
                 <p><strong>Author:</strong> {book.author}</p>

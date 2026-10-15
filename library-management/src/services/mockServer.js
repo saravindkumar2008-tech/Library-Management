@@ -33,7 +33,24 @@ function getStoredBooks() {
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const updated = parsed.map((book) => {
+          const initial = INITIAL_BOOKS.find((b) => b.id === book.id || b.title === book.title);
+          if (initial) {
+            return {
+              ...book,
+              coverImage: initial.coverImage
+            };
+          }
+          return book;
+        });
+
+        INITIAL_BOOKS.forEach((initBook) => {
+          if (!updated.some((b) => b.id === initBook.id || b.title === initBook.title)) {
+            updated.push(initBook);
+          }
+        });
+
+        return updated;
       }
     }
   } catch (e) {
@@ -201,6 +218,7 @@ export async function mockRestApiHandler(method, path, options = {}) {
       isbn: body.isbn || `978-818468${String(maxId + 1).padStart(4, "0")}`,
       pages: Number(body.pages) || 350,
       language: body.language || "Tamil",
+      coverImage: body.coverImage || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
       description: body.description || `Added to library catalog on ${new Date().toLocaleDateString()}.`
     };
 

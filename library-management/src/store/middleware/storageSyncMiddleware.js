@@ -6,6 +6,7 @@
  */
 
 export const STORAGE_SYNC_KEY = "redux_library_store";
+import { INITIAL_BOOKS } from "../../services/mockData.js";
 
 export const storageSyncMiddleware = (storeAPI) => (next) => (action) => {
   const result = next(action);
@@ -49,6 +50,21 @@ export function loadPersistedState() {
     const raw = localStorage.getItem(STORAGE_SYNC_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.books)) {
+        parsed.books = parsed.books.map((b) => {
+          const initial = INITIAL_BOOKS.find((init) => init.id === b.id || init.title === b.title);
+          if (initial) {
+            return { ...b, coverImage: initial.coverImage };
+          }
+          return b;
+        });
+
+        INITIAL_BOOKS.forEach((initBook) => {
+          if (!parsed.books.some((b) => b.id === initBook.id || b.title === initBook.title)) {
+            parsed.books.push(initBook);
+          }
+        });
+      }
       return parsed;
     }
   } catch (err) {

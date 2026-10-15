@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLibrary } from "../context/LibraryContext";
 import { bookService } from "../services/bookService";
 import Loading from "./common/Loading";
 import OptimizedBookCover from "./common/OptimizedBookCover";
-import BookFormModal from "./BookFormModal";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+
+const BookFormModal = lazy(() => import("./BookFormModal"));
+const DeleteConfirmModal = lazy(() => import("./DeleteConfirmModal"));
 
 /**
  * BookDetailPage Component
@@ -258,33 +259,41 @@ function BookDetailPage() {
       </div>
 
       {/* Edit Book Modal (PUT/PATCH CRUD) */}
-      <BookFormModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        initialBook={book}
-        mode="edit"
-        onSubmit={async (payload) => {
-          const res = await updateBook(book.id, payload);
-          if (res?.book) {
-            setBook(res.book);
-          } else {
-            setBook((prev) => ({ ...prev, ...payload }));
-          }
-          setIsEditModalOpen(false);
-        }}
-      />
+      {isEditModalOpen && (
+        <Suspense fallback={null}>
+          <BookFormModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            initialBook={book}
+            mode="edit"
+            onSubmit={async (payload) => {
+              const res = await updateBook(book.id, payload);
+              if (res?.book) {
+                setBook(res.book);
+              } else {
+                setBook((prev) => ({ ...prev, ...payload }));
+              }
+              setIsEditModalOpen(false);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Delete Book Confirmation Modal (DELETE CRUD) */}
-      <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        book={book}
-        onConfirm={async (bookId) => {
-          await deleteBook(bookId);
-          setIsDeleteModalOpen(false);
-          navigate("/books");
-        }}
-      />
+      {isDeleteModalOpen && (
+        <Suspense fallback={null}>
+          <DeleteConfirmModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            book={book}
+            onConfirm={async (bookId) => {
+              await deleteBook(bookId);
+              setIsDeleteModalOpen(false);
+              navigate("/books");
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

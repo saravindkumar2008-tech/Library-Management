@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLibrary } from "../context/LibraryContext";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 
 function BorrowConfirmationPage() {
   const { id } = useParams();
@@ -63,6 +64,14 @@ function BorrowConfirmationPage() {
               <span className="receipt-label">Confirmation ID</span>
               <span className="receipt-code">{confirmationCode}</span>
             </div>
+
+            {book && (
+              <div style={{ display: "flex", justifyContent: "center", padding: "16px 0 6px 0" }}>
+                <div style={{ width: "90px" }}>
+                  <OptimizedBookCover book={book} size="sm" showBadge={false} />
+                </div>
+              </div>
+            )}
 
             <div className="receipt-body">
               <div className="receipt-row">

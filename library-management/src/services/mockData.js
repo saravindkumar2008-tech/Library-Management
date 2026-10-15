@@ -1,6 +1,7 @@
 /**
  * Mock Data Repository for Library REST API
  * Provides structured dataset for Tamil literature catalog and member profiles.
+ * Features authentic, original book cover images sourced from public archives and repositories.
  */
 
 export const INITIAL_BOOKS = [
@@ -15,6 +16,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680010",
     pages: 2400,
     language: "Tamil",
+    coverImage: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1496177665i/35269253.jpg",
     description: "A monumental 5-volume historical fiction classic portraying the early life of Rajaraja Chola I and the Chola empire intrigues."
   },
   {
@@ -28,6 +30,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680027",
     pages: 1120,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/ta/2/23/Sivakamiyin.jpg",
     description: "Set during the 7th century Pallava-Chalukya conflicts, centered around the sculptor Sivagami and King Narasimhavarman I."
   },
   {
@@ -41,6 +44,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680034",
     pages: 420,
     language: "Tamil",
+    coverImage: "https://covers.openlibrary.org/b/id/6457267-L.jpg",
     description: "A timeless ancient masterpiece containing 1,330 couplets covering virtue (Aram), wealth (Porul), and love (Inbam)."
   },
   {
@@ -54,6 +58,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680041",
     pages: 1044,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/ta/9/98/Kaval_Kottam.jpg",
     description: "Sahitya Akademi award-winning epic novel chronicling 600 years of the history and guardianship of Madurai."
   },
   {
@@ -67,6 +72,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680058",
     pages: 1350,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/1/1a/Veera_Yuga_Nayagan_Velpari.jpg",
     description: "The gripping legend of the valiant chieftain Pari, king of Parambu Nadu, defying the combined might of the three great dynasties."
   },
   {
@@ -80,6 +86,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680065",
     pages: 310,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/f/f4/En_Iniya_Iyanthira.jpg",
     description: "A pioneering Tamil sci-fi dystopian saga featuring totalitarian rule, androids, and the robot dog Jeeno."
   },
   {
@@ -93,6 +100,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680072",
     pages: 380,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/5/5b/Parthiban_Kanavu.jpg",
     description: "The inspiring narrative of Chola Prince Vikraman fulfilling his father King Parthiban's dream of Chola restoration."
   },
   {
@@ -106,6 +114,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680089",
     pages: 350,
     language: "Tamil",
+    coverImage: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1762904638i/5054534.jpg",
     description: "A celebrated Sahitya Akademi-winning tale of migration, folk resilience, and life in the arid Karisal country."
   },
   {
@@ -119,6 +128,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680096",
     pages: 480,
     language: "Tamil",
+    coverImage: "https://covers.openlibrary.org/b/id/12588887-L.jpg",
     description: "One of the Five Great Epics of Tamil literature, following Kannagi's relentless quest for justice against the Pandyan king."
   },
   {
@@ -132,7 +142,78 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680102",
     pages: 1450,
     language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/a/a9/Kadal_Pura_book_cover.jpg",
     description: "An adventurous historical naval romance following the expeditions of the Chola navy across Southeast Asian waters."
+  },
+  {
+    id: 111,
+    title: "Vengayin Maindhan",
+    author: "Akilan",
+    category: "Historical Fiction",
+    year: 1961,
+    available: true,
+    rating: 4.9,
+    isbn: "978-8184680119",
+    pages: 620,
+    language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/ta/3/38/%E0%AE%B5%E0%AF%87%E0%AE%99%E0%AF%8D%E0%AE%95%E0%AF%88%E0%AE%AF%E0%AE%BF%E0%AE%A9%E0%AF%8D_%E0%AE%AE%E0%AF%88%E0%AE%A8%E0%AF%8D%E0%AE%A4%E0%AE%A9%E0%AF%8D.jpg",
+    description: "Sahitya Akademi Award-winning historical masterpiece chronicling Rajendra Chola I's valor, the maritime expedition to Srivijaya, and the northern march to the holy Ganges."
+  },
+  {
+    id: 112,
+    title: "Sila Nerangalil Sila Manithargal",
+    author: "D. Jayakanthan",
+    category: "Classic Literature",
+    year: 1970,
+    available: true,
+    rating: 4.8,
+    isbn: "978-8184680126",
+    pages: 340,
+    language: "Tamil",
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/d/d6/Sila_Nerangalil_Sila_Manithargal_%28novel%29.jpg",
+    description: "Sahitya Akademi Award-winning novel depicting Ganga's emotional fortitude against societal orthodoxies, widely considered a supreme peak of modern Tamil realism."
+  },
+  {
+    id: 113,
+    title: "Alai Osai",
+    author: "Kalki Krishnamurthy",
+    category: "Historical Fiction",
+    year: 1953,
+    available: true,
+    rating: 4.8,
+    isbn: "978-8184680133",
+    pages: 780,
+    language: "Tamil",
+    coverImage: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1535739673i/41580541.jpg",
+    description: "Kalki's self-proclaimed magnum opus and Sahitya Akademi-winning epic capturing the passionate decades of India's freedom struggle and partition."
+  },
+  {
+    id: 114,
+    title: "Nandhipurathu Nayagi",
+    author: "Vikiraman",
+    category: "Historical Fiction",
+    year: 1957,
+    available: true,
+    rating: 4.7,
+    isbn: "978-8184680140",
+    pages: 820,
+    language: "Tamil",
+    coverImage: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1662883901i/17560590.jpg",
+    description: "A gripping historical saga written as a direct companion to the Chola chronicles, following Princess Kundavai, Vanathi, and the royal court intrigues."
+  },
+  {
+    id: 115,
+    title: "Moga Mul",
+    author: "T. Janakiraman",
+    category: "Classic Literature",
+    year: 1956,
+    available: true,
+    rating: 4.9,
+    isbn: "978-8184680157",
+    pages: 450,
+    language: "Tamil",
+    coverImage: "https://cdn.exoticindia.com/images/products/original/books-2019-023/uaw070.jpg",
+    description: "A poignant, lyrical masterpiece set on the banks of the Cauvery in Kumbakonam, exploring passionate devotion, Carnatic music, and human bonds."
   }
 ];
 
@@ -147,6 +228,6 @@ export const DEFAULT_MEMBER_DATA = {
   joinedDate: "2024-01-15",
   maxBooksAllowed: 5,
   activeLoansCount: 0,
-  preferredCategories: ["Historical Fiction", "Epic Fiction", "Philosophy & Ethics"],
+  preferredCategories: ["Historical Fiction", "Epic Fiction", "Philosophy & Ethics", "Classic Literature"],
   membershipStatus: "Active"
 };

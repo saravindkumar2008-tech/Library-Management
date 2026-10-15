@@ -3,6 +3,7 @@ import { useLibrary } from "../context/LibraryContext";
 import Button from "./Button";
 import BookStatus from "./BookStatus";
 import Input from "./Input";
+import OptimizedBookCover from "./common/OptimizedBookCover";
 import { validateRenewalRequest, validateRequired } from "../utils/validation";
 
 /**
@@ -140,11 +141,18 @@ export function BorrowedBooks() {
                 className={`borrowed-card ${isOverdue ? "card-overdue" : isDueSoon ? "card-duesoon" : ""}`}
               >
                 <div className="borrowed-card-header">
-                  <h3>{book.title}</h3>
-                  <BookStatus
-                    status={isOverdue ? "overdue" : isDueSoon ? "dueSoon" : "borrowed"}
-                    customLabel={isOverdue ? "Overdue" : isDueSoon ? "Due Soon" : "Active Loan"}
-                  />
+                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", width: "100%" }}>
+                    <div style={{ width: "56px", flexShrink: 0 }}>
+                      <OptimizedBookCover book={book} size="sm" showBadge={false} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3>{book.title}</h3>
+                      <BookStatus
+                        status={isOverdue ? "overdue" : isDueSoon ? "dueSoon" : "borrowed"}
+                        customLabel={isOverdue ? "Overdue" : isDueSoon ? "Due Soon" : "Active Loan"}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <p className="author-text">

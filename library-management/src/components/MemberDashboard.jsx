@@ -1,6 +1,7 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useLibrary } from "../context/LibraryContext";
+import { DashboardTabSkeleton } from "./common/Skeletons";
 
 /**
  * MemberDashboard Layout Component
@@ -105,9 +106,11 @@ function MemberDashboard() {
         </NavLink>
       </div>
 
-      {/* Nested Route Outlet: Displays child components (Requirement f) */}
+      {/* Nested Route Outlet: Displays child components with React Suspense */}
       <div className="dashboard-outlet-container">
-        <Outlet />
+        <Suspense fallback={<DashboardTabSkeleton />}>
+          <Outlet />
+        </Suspense>
       </div>
     </div>
   );
