@@ -22,11 +22,11 @@ function Header() {
   };
 
   return (
-    <header className="header">
+    <header className="header" role="banner">
       <div className="header-container">
         {/* b) Use Link component to navigate to Home without reloading */}
-        <Link to="/" className="logo-brand">
-          <span className="logo-icon">📚</span>
+        <Link to="/" className="logo-brand" aria-label="AK Tamil Library - Return to Home">
+          <span className="logo-icon" aria-hidden="true">📚</span>
           <div className="logo-text">
             <span className="brand-name">AK Tamil Library</span>
             <span className="brand-sub">Book Search & Borrow Management</span>
@@ -34,7 +34,7 @@ function Header() {
         </Link>
 
         {/* b) Use NavLink components to navigate between pages with active state */}
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Primary site navigation">
           <NavLink
             to="/books"
             className={({ isActive }) =>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "./Button";
 import Input from "./Input";
+import { sanitizeObject } from "../utils/security";
 
 /**
  * BookFormModal Component
@@ -74,11 +75,12 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialBook = null, m
     setError(null);
 
     try {
+      const sanitized = sanitizeObject(formData);
       const payload = {
-        ...formData,
-        year: Number(formData.year) || new Date().getFullYear(),
-        rating: Number(formData.rating) || 4.5,
-        pages: Number(formData.pages) || 300
+        ...sanitized,
+        year: Number(sanitized.year) || new Date().getFullYear(),
+        rating: Number(sanitized.rating) || 4.5,
+        pages: Number(sanitized.pages) || 300
       };
 
       await onSubmit(payload);
