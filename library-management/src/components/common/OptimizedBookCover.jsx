@@ -58,7 +58,8 @@ export function OptimizedBookCover({
   book,
   size = "md",
   className = "",
-  showBadge = true
+  showBadge = true,
+  showText = false
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -80,7 +81,7 @@ export function OptimizedBookCover({
     <div
       className={`optimized-book-cover ${selectedSizeClass} ${className}`.trim()}
       role="img"
-      aria-label={`Book cover: ${title} by ${author}, ${book?.category || "Literature"}`}
+      aria-label={`Book cover illustration for ${title} by ${author}`}
       style={{
         background: theme.bg,
         aspectRatio: "2 / 3",
@@ -91,7 +92,7 @@ export function OptimizedBookCover({
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        padding: size === "sm" ? "8px" : size === "lg" ? "20px" : "14px",
+        padding: size === "sm" ? "10px" : size === "lg" ? "20px" : "14px",
         color: "#ffffff"
       }}
     >
@@ -121,7 +122,7 @@ export function OptimizedBookCover({
                 position: "absolute",
                 inset: 0,
                 background: "rgba(255, 255, 255, 0.1)",
-                animation: "pulse 1.5s infinite ease-in-out"
+                animation: "skeletonShimmer 1.5s infinite"
               }}
             />
           )}
@@ -148,7 +149,7 @@ export function OptimizedBookCover({
         </>
       ) : null}
 
-      {/* Vector/Geometric Stylized Book Cover Art (Zero network payload, instant paint) */}
+      {/* Header Motif & Badge */}
       <div
         className="cover-header-decor"
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 3 }}
@@ -156,7 +157,7 @@ export function OptimizedBookCover({
         <span
           className="cover-motif-icon"
           aria-hidden="true"
-          style={{ fontSize: size === "sm" ? "1.2rem" : size === "lg" ? "2rem" : "1.6rem" }}
+          style={{ fontSize: size === "sm" ? "1.4rem" : size === "lg" ? "2.2rem" : "1.8rem" }}
         >
           {theme.icon}
         </span>
@@ -164,7 +165,7 @@ export function OptimizedBookCover({
           <span
             className="cover-category-pill"
             style={{
-              fontSize: size === "sm" ? "0.65rem" : "0.75rem",
+              fontSize: size === "sm" ? "0.68rem" : "0.78rem",
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.5px",
@@ -173,7 +174,7 @@ export function OptimizedBookCover({
               background: "rgba(0, 0, 0, 0.3)",
               backdropFilter: "blur(4px)",
               color: theme.accent,
-              border: `1px solid rgba(255, 255, 255, 0.2)`
+              border: "1px solid rgba(255, 255, 255, 0.2)"
             }}
           >
             {theme.badge}
@@ -181,8 +182,10 @@ export function OptimizedBookCover({
         )}
       </div>
 
+      {/* Center Motif Artwork */}
       <div
         className="cover-center-content"
+        aria-hidden={!showText}
         style={{
           margin: "auto 0",
           textAlign: "center",
@@ -194,50 +197,69 @@ export function OptimizedBookCover({
           className="cover-art-ornament"
           aria-hidden="true"
           style={{
-            width: "40px",
+            width: "48px",
             height: "2px",
-            background: "rgba(255, 255, 255, 0.5)",
-            margin: "0 auto 8px auto"
+            background: "rgba(255, 255, 255, 0.45)",
+            margin: "0 auto 10px auto"
           }}
         />
-        <h4
-          className="cover-book-title"
+
+        <div
+          className="cover-center-graphic"
+          aria-hidden="true"
           style={{
-            fontSize: size === "sm" ? "0.85rem" : size === "lg" ? "1.35rem" : "1.05rem",
-            fontWeight: 700,
-            lineHeight: 1.25,
-            margin: "0 0 4px 0",
-            color: "#ffffff"
+            fontSize: size === "sm" ? "2rem" : size === "lg" ? "3.2rem" : "2.6rem",
+            opacity: 0.9,
+            marginBottom: "6px"
           }}
         >
-          {title}
-        </h4>
-        <p
-          className="cover-book-author"
-          style={{
-            fontSize: size === "sm" ? "0.7rem" : "0.82rem",
-            margin: 0,
-            color: theme.accent,
-            opacity: 0.95
-          }}
-        >
-          {author}
-        </p>
+          📖
+        </div>
+
+        {showText && (
+          <>
+            <h4
+              className="cover-book-title"
+              style={{
+                fontSize: size === "sm" ? "0.85rem" : size === "lg" ? "1.35rem" : "1.05rem",
+                fontWeight: 700,
+                lineHeight: 1.25,
+                margin: "0 0 4px 0",
+                color: "#ffffff"
+              }}
+            >
+              {title}
+            </h4>
+            <p
+              className="cover-book-author"
+              style={{
+                fontSize: size === "sm" ? "0.7rem" : "0.82rem",
+                margin: 0,
+                color: theme.accent,
+                opacity: 0.95
+              }}
+            >
+              {author}
+            </p>
+          </>
+        )}
       </div>
 
+      {/* Footer subtle accent */}
       <div
         className="cover-footer-meta"
+        aria-hidden="true"
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontSize: size === "sm" ? "0.65rem" : "0.72rem",
-          opacity: 0.85,
+          fontSize: "0.7rem",
+          opacity: 0.75,
           zIndex: 3
         }}
       >
-        <span>{book?.year ? `${book.year}` : ""}</span>
-        <span>{book?.rating ? `⭐ ${book.rating}` : ""}</span>
+        <span>Tamil Heritage Collection</span>
+        <span>★ ★ ★ ★ ★</span>
       </div>
     </div>
   );
