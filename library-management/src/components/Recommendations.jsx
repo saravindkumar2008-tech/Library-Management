@@ -11,7 +11,7 @@ import Loading from "./common/Loading";
  * Satisfies Requirements d, e, f.
  */
 function Recommendations() {
-  const { member, readingHistory, borrowedBooks, openBookDetail, borrowBook, placeHold, apiEngine } = useLibrary();
+  const { member, readingHistory, borrowedBooks, openBookDetail, borrowBook, placeHold } = useLibrary();
 
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
