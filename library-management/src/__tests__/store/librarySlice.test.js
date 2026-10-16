@@ -38,8 +38,8 @@ const makeStore = (preloaded = {}) =>
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getLib = (store) => store.getState().library;
-const BOOK_101 = 101; // The Amazing Spider-Man — available
-const BOOK_102 = 102; // Batman: The Dark Knight Returns — available
+const BOOK_101 = 101; // Ponniyin Selvan — available
+const BOOK_102 = 102; // Sivagamiyin Sabatham — available
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ describe("librarySlice — Redux Store Tests", () => {
       store.dispatch(borrowBook({ bookId: BOOK_101, durationDays: 14 }));
       const fb = getLib(store).operationFeedback;
       expect(fb.type).toBe("success");
-      expect(fb.message).toContain("The Amazing Spider-Man");
+      expect(fb.message).toContain("Ponniyin Selvan");
     });
 
     test("cannot borrow already borrowed book", () => {
@@ -151,7 +151,7 @@ describe("librarySlice — Redux Store Tests", () => {
       store.dispatch(returnBook({ bookId: BOOK_101, rating: 4 }));
       const history = getLib(store).readingHistory;
       expect(history).toHaveLength(1);
-      expect(history[0].title).toBe("The Amazing Spider-Man");
+      expect(history[0].title).toBe("Ponniyin Selvan");
     });
 
     test("reading history entry has returnDate and rating", () => {

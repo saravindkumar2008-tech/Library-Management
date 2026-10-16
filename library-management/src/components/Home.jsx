@@ -161,9 +161,9 @@ function Home() {
       {/* Book Catalog Header */}
       <div className="catalog-header">
         <div>
-          <h2>Comics Book Catalog</h2>
+          <h2>Tamil Book Catalog</h2>
           <span className="catalog-count-pill">
-            {books.length} {books.length === 1 ? "comic" : "comics"} loaded via REST API
+            {books.length} {books.length === 1 ? "book" : "books"} loaded via REST API
           </span>
         </div>
         <div className="catalog-refresh-btn-wrap" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>

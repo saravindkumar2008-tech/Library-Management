@@ -5,36 +5,6 @@ import { LibraryContext } from "../../context/libraryContextInstance";
  * Category-based rich gradient color palettes & motif patterns
  */
 const CATEGORY_THEMES = {
-  "Superhero Comics": {
-    bg: "linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #f87171 100%)",
-    accent: "#fee2e2",
-    icon: "🦸‍♂️",
-    badge: "Superhero"
-  },
-  "Graphic Novel": {
-    bg: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #6366f1 100%)",
-    accent: "#e0e7ff",
-    icon: "📖",
-    badge: "Graphic Novel"
-  },
-  "Manga Comics": {
-    bg: "linear-gradient(135deg, #831843 0%, #be185d 50%, #f472b6 100%)",
-    accent: "#fce7f3",
-    icon: "⚡",
-    badge: "Manga"
-  },
-  "Classic Comics": {
-    bg: "linear-gradient(135deg, #1e3a8a 0%, #0284c7 50%, #38bdf8 100%)",
-    accent: "#e0f2fe",
-    icon: "💥",
-    badge: "Classic"
-  },
-  "Fantasy & Sci-Fi Comics": {
-    bg: "linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #c084fc 100%)",
-    accent: "#f3e8ff",
-    icon: "🌌",
-    badge: "Fantasy"
-  },
   "Historical Fiction": {
     bg: "linear-gradient(135deg, #78350f 0%, #b45309 50%, #f59e0b 100%)",
     accent: "#fef3c7",
@@ -363,7 +333,7 @@ export function OptimizedBookCover({
         }}
       >
         <span style={{ fontWeight: 500, letterSpacing: "0.2px" }}>
-          {size === "sm" ? "Edition" : "Collector's Edition"}
+          {size === "sm" ? "Heritage" : "Tamil Heritage Collection"}
         </span>
         <span style={{ color: "#fbbf24" }}>★ ★ ★ ★ ★</span>
       </div>
