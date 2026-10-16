@@ -16,7 +16,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680010",
     pages: 2400,
     language: "Tamil",
-    coverImage: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1496177665i/35269253.jpg",
+    coverImage: "https://i.pinimg.com/736x/07/e4/3b/07e43b32d5aeb613a5f635de1ae5f8d4.jpg",
     description: "A monumental 5-volume historical fiction classic portraying the early life of Rajaraja Chola I and the Chola empire intrigues."
   },
   {
@@ -30,7 +30,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680027",
     pages: 1120,
     language: "Tamil",
-    coverImage: "https://upload.wikimedia.org/wikipedia/ta/2/23/Sivakamiyin.jpg",
+    coverImage: "https://rupapublications.co.in/images/1726833125.jpg",
     description: "Set during the 7th century Pallava-Chalukya conflicts, centered around the sculptor Sivagami and King Narasimhavarman I."
   },
   {
@@ -74,20 +74,6 @@ export const INITIAL_BOOKS = [
     language: "Tamil",
     coverImage: "https://upload.wikimedia.org/wikipedia/en/1/1a/Veera_Yuga_Nayagan_Velpari.jpg",
     description: "The gripping legend of the valiant chieftain Pari, king of Parambu Nadu, defying the combined might of the three great dynasties."
-  },
-  {
-    id: 106,
-    title: "En Iniya Iyanthira",
-    author: "Sujatha",
-    category: "Science Fiction",
-    year: 1987,
-    available: true,
-    rating: 4.6,
-    isbn: "978-8184680065",
-    pages: 310,
-    language: "Tamil",
-    coverImage: "https://upload.wikimedia.org/wikipedia/en/f/f4/En_Iniya_Iyanthira.jpg",
-    description: "A pioneering Tamil sci-fi dystopian saga featuring totalitarian rule, androids, and the robot dog Jeeno."
   },
   {
     id: 107,

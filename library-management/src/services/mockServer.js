@@ -34,7 +34,13 @@ function getStoredBooks() {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
         let hasCoverChanges = false;
-        const updated = parsed.map((book) => {
+        const filteredParsed = parsed.filter(
+          (b) => b.id !== 106 && b.title !== "En Iniya Iyanthira"
+        );
+        if (filteredParsed.length !== parsed.length) {
+          hasCoverChanges = true;
+        }
+        const updated = filteredParsed.map((book) => {
           const initial = INITIAL_BOOKS.find((b) => b.id === book.id || b.title === book.title);
           if (initial) {
             if (book.coverImage !== initial.coverImage) {

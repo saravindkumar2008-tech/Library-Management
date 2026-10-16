@@ -6,12 +6,11 @@
 
 // Curated original covers for Tamil literary classics as web/instant fallbacks
 const CURATED_TAMIL_COVERS = {
-  "ponniyin selvan": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1496177665i/35269253.jpg",
-  "sivagamiyin sabatham": "https://upload.wikimedia.org/wikipedia/ta/2/23/Sivakamiyin.jpg",
+  "ponniyin selvan": "https://i.pinimg.com/736x/07/e4/3b/07e43b32d5aeb613a5f635de1ae5f8d4.jpg",
+  "sivagamiyin sabatham": "https://rupapublications.co.in/images/1726833125.jpg",
   "thirukkural": "https://shantibooks.in/cdn/shop/files/ThirukuralwrapperFront.jpg?v=1730263937",
   "kaaval kottam": "https://upload.wikimedia.org/wikipedia/ta/9/98/Kaval_Kottam.jpg",
   "velpari": "https://upload.wikimedia.org/wikipedia/en/1/1a/Veera_Yuga_Nayagan_Velpari.jpg",
-  "en iniya iyanthira": "https://upload.wikimedia.org/wikipedia/en/f/f4/En_Iniya_Iyanthira.jpg",
   "parthiban kanavu": "https://upload.wikimedia.org/wikipedia/en/5/5b/Parthiban_Kanavu.jpg",
   "gopallapurathu makkal": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1762904638i/5054534.jpg",
   "silapathikaram": "https://covers.openlibrary.org/b/id/12588887-L.jpg",
