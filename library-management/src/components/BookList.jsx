@@ -37,7 +37,7 @@ function BookList() {
     return (
       <div className="book-list-loading-wrap">
         <Loading
-          message={`Fetching Tamil book catalog from REST API via ${apiEngine.toUpperCase()}...`}
+          message={`Fetching comic book catalog from REST API via ${apiEngine.toUpperCase()}...`}
           size="lg"
         />
         <div className="skeleton-grid">

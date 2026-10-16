@@ -26,9 +26,18 @@ import { apiConfig, sleep } from "./apiConfig.js";
 const STORAGE_BOOKS_KEY = "library_books_catalog";
 const STORAGE_MEMBER_KEY = "library_member_profile";
 const STORAGE_BORROWINGS_KEY = "library_borrowed_books";
+const STORAGE_CATALOG_VERSION_KEY = "library_catalog_version_comics";
+const CURRENT_CATALOG_VERSION = "comics_v1";
 
 function getStoredBooks() {
   try {
+    // If user has old catalog version, reset to the new comics catalog
+    if (localStorage.getItem(STORAGE_CATALOG_VERSION_KEY) !== CURRENT_CATALOG_VERSION) {
+      localStorage.setItem(STORAGE_CATALOG_VERSION_KEY, CURRENT_CATALOG_VERSION);
+      localStorage.setItem(STORAGE_BOOKS_KEY, JSON.stringify(INITIAL_BOOKS));
+      return [...INITIAL_BOOKS];
+    }
+
     const data = localStorage.getItem(STORAGE_BOOKS_KEY);
     if (data) {
       const parsed = JSON.parse(data);
@@ -490,7 +499,7 @@ export async function mockRestApiHandler(method, path, options = {}) {
     const limit = Number(params.get("limit")) || 3;
 
     const targetCategory =
-      requestedCat || (member.preferredCategories && member.preferredCategories[0]) || "Historical Fiction";
+      requestedCat || (member.preferredCategories && member.preferredCategories[0]) || "Superhero Comics";
 
     let pool = books.filter((b) => b.category.toLowerCase() === targetCategory.toLowerCase());
     if (pool.length < limit) {
@@ -503,7 +512,7 @@ export async function mockRestApiHandler(method, path, options = {}) {
       recommendationReason:
         book.category.toLowerCase() === targetCategory.toLowerCase()
           ? `Top match for your interest in ${book.category}`
-          : "Highly recommended classic in Tamil literature",
+          : "Highly recommended comic book classic",
       matchScore: Math.max(85, 98 - idx * 4) + "%",
       badge: idx === 0 ? "Staff Pick" : idx === 1 ? "Trending" : "Editor's Choice"
     }));
