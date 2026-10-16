@@ -44,7 +44,7 @@ export const INITIAL_BOOKS = [
     isbn: "978-8184680034",
     pages: 420,
     language: "Tamil",
-    coverImage: "https://covers.openlibrary.org/b/id/6457267-L.jpg",
+    coverImage: "https://shantibooks.in/cdn/shop/files/ThirukuralwrapperFront.jpg?v=1730263937",
     description: "A timeless ancient masterpiece containing 1,330 couplets covering virtue (Aram), wealth (Porul), and love (Inbam)."
   },
   {

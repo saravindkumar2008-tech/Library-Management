@@ -33,9 +33,13 @@ function getStoredBooks() {
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        let hasCoverChanges = false;
         const updated = parsed.map((book) => {
           const initial = INITIAL_BOOKS.find((b) => b.id === book.id || b.title === book.title);
           if (initial) {
+            if (book.coverImage !== initial.coverImage) {
+              hasCoverChanges = true;
+            }
             return {
               ...book,
               coverImage: initial.coverImage
@@ -47,8 +51,13 @@ function getStoredBooks() {
         INITIAL_BOOKS.forEach((initBook) => {
           if (!updated.some((b) => b.id === initBook.id || b.title === initBook.title)) {
             updated.push(initBook);
+            hasCoverChanges = true;
           }
         });
+
+        if (hasCoverChanges) {
+          saveStoredBooks(updated);
+        }
 
         return updated;
       }
