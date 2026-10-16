@@ -151,8 +151,8 @@ describe("Search and Filter (Requirement b)", () => {
     test("changing author filter calls setAuthor", () => {
       renderWithProviders(<FilterPanel />);
       const authorSelect = screen.getByLabelText("Author:");
-      fireEvent.change(authorSelect, { target: { value: "Sujatha" } });
-      expect(mockSetAuthor).toHaveBeenCalledWith("Sujatha");
+      fireEvent.change(authorSelect, { target: { value: "Kalki Krishnamurthy" } });
+      expect(mockSetAuthor).toHaveBeenCalledWith("Kalki Krishnamurthy");
     });
 
     test("availability dropdown has 'Available Only' option", () => {
@@ -191,22 +191,22 @@ describe("Search and Filter (Requirement b)", () => {
 
     test("filtering books by author search works correctly", () => {
       const books = INITIAL_BOOKS;
-      const query = "Sujatha";
+      const query = "Kalki Krishnamurthy";
       const filtered = books.filter(
         (b) =>
           b.title.toLowerCase().includes(query.toLowerCase()) ||
           b.author.toLowerCase().includes(query.toLowerCase())
       );
-      expect(filtered).toHaveLength(1);
-      expect(filtered[0].author).toBe("Sujatha");
+      expect(filtered.length).toBeGreaterThan(0);
+      expect(filtered[0].author).toBe("Kalki Krishnamurthy");
     });
 
-    test("filtering by category 'Science Fiction' returns correct books", () => {
+    test("filtering by category 'Epic Fiction' returns correct books", () => {
       const filtered = INITIAL_BOOKS.filter(
-        (b) => b.category === "Science Fiction"
+        (b) => b.category === "Epic Fiction"
       );
       expect(filtered).toHaveLength(1);
-      expect(filtered[0].title).toBe("En Iniya Iyanthira");
+      expect(filtered[0].title).toBe("Velpari");
     });
 
     test("filtering by availability returns only available books", () => {

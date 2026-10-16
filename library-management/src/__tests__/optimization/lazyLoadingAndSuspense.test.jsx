@@ -122,7 +122,7 @@ describe("Lazy Loading, Web Book Images & React Suspense", () => {
     test("searchCoversForBook returns curated HD covers for known Tamil classics", async () => {
       const covers = await webBookService.searchCoversForBook("Ponniyin Selvan", "Kalki");
       expect(covers.length).toBeGreaterThan(0);
-      expect(covers[0].url).toContain("goodreads");
+      expect(covers[0].url).toContain("pinimg");
     });
   });
 

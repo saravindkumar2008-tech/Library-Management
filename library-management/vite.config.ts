@@ -11,7 +11,7 @@ const SEED_BOOKS: any[] = [
     available: true,
     rating: 4.9,
     isbn: "978-8184680010",
-    coverImage: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://i.pinimg.com/736x/07/e4/3b/07e43b32d5aeb613a5f635de1ae5f8d4.jpg",
     description: "A monumental 5-volume historical fiction classic portraying the early life of Rajaraja Chola I and the Chola empire intrigues."
   },
   {
@@ -23,7 +23,7 @@ const SEED_BOOKS: any[] = [
     available: true,
     rating: 4.8,
     isbn: "978-8184680027",
-    coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://rupapublications.co.in/images/1726833125.jpg",
     description: "Set during the 7th century Pallava-Chalukya conflicts, centered around the sculptor Sivagami and King Narasimhavarman I."
   },
   {
@@ -35,7 +35,7 @@ const SEED_BOOKS: any[] = [
     available: true,
     rating: 5.0,
     isbn: "978-8184680034",
-    coverImage: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80",
+    coverImage: "https://shantibooks.in/cdn/shop/files/ThirukuralwrapperFront.jpg?v=1730263937",
     description: "A timeless ancient masterpiece containing 1,330 couplets covering virtue (Aram), wealth (Porul), and love (Inbam)."
   },
   {
@@ -61,18 +61,6 @@ const SEED_BOOKS: any[] = [
     isbn: "978-8184680058",
     coverImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
     description: "The gripping legend of the valiant chieftain Pari, king of Parambu Nadu, defying the combined might of the three great dynasties."
-  },
-  {
-    id: 106,
-    title: "En Iniya Iyanthira",
-    author: "Sujatha",
-    category: "Science Fiction",
-    year: 1987,
-    available: true,
-    rating: 4.6,
-    isbn: "978-8184680065",
-    coverImage: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80",
-    description: "A pioneering Tamil sci-fi dystopian saga featuring totalitarian rule, androids, and the robot dog Jeeno."
   },
   {
     id: 107,
