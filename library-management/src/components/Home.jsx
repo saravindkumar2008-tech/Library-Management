@@ -6,7 +6,6 @@ import { BookGridSkeleton } from "./common/Skeletons";
 
 // Lazy load components with React Suspense for maximum performance
 const BookList = lazy(() => import("./BookList"));
-const Recommendations = lazy(() => import("./Recommendations"));
 const BookFormModal = lazy(() => import("./BookFormModal"));
 const WebBookSearchModal = lazy(() => import("./WebBookSearchModal"));
 
@@ -146,17 +145,6 @@ function Home() {
         <SearchBar onOpenWebSearch={() => setIsWebSearchOpen(true)} />
         <FilterPanel />
       </div>
-
-      {/* API-Based Recommendations Section with Suspense (Requirement f) */}
-      <Suspense
-        fallback={
-          <div className="recommendations-section" style={{ minHeight: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>✨ Loading personalized recommendations...</span>
-          </div>
-        }
-      >
-        <Recommendations />
-      </Suspense>
 
       {/* Book Catalog Header */}
       <div className="catalog-header">
