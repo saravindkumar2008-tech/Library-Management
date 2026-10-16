@@ -14,8 +14,8 @@ export const apiConfig = {
   // Base URL for REST API endpoints
   baseURL: "/api",
 
-  // Simulated network latency in milliseconds (useful to inspect loading states)
-  simulatedDelay: 400,
+  // Simulated network latency in milliseconds (0 for instant responses)
+  simulatedDelay: 0,
 
   // Simulated error mode for testing error states (null | "NETWORK_ERROR" | "HTTP_500" | "HTTP_404")
   simulateError: null,

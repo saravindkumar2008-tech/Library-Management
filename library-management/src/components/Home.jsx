@@ -24,12 +24,6 @@ function Home() {
     memberLoading,
     memberError,
     refetchMember,
-    apiEngine,
-    setApiEngine,
-    simulatedDelay,
-    setSimulatedDelay,
-    simulateError,
-    setSimulateError,
     refetchBooks,
     addBook,
     imageLoadingMode,
@@ -38,107 +32,31 @@ function Home() {
 
   return (
     <div className="home-view">
-      {/* REST API Controls & Status Toolbar */}
-      <div className="api-control-toolbar">
-        <div className="api-toolbar-left">
-          <span className="api-pulse-dot"></span>
-          <span className="api-label">REST API:</span>
-          <span className="api-badge-online">Active</span>
-
-          {/* Engine Selector: Axios vs Fetch (Experiment 1 Core Topic) */}
-          <div className="api-engine-selector">
-            <span className="selector-title">Client:</span>
-            <button
-              type="button"
-              className={`btn-engine-toggle ${apiEngine === "axios" ? "active" : ""}`}
-              onClick={() => {
-                setApiEngine("axios");
-                refetchBooks();
-              }}
-              title="Use Axios HTTP Client with Interceptors"
-            >
-              Axios
-            </button>
-            <button
-              type="button"
-              className={`btn-engine-toggle ${apiEngine === "fetch" ? "active" : ""}`}
-              onClick={() => {
-                setApiEngine("fetch");
-                refetchBooks();
-              }}
-              title="Use Native Fetch API with AbortController"
-            >
-              Fetch
-            </button>
-          </div>
-
-          {/* Image Loading Strategy Selector for F12 Network Tab Demonstration */}
-          <div className="api-engine-selector" style={{ marginLeft: "8px" }}>
-            <span className="selector-title">Image Loading:</span>
-            <button
-              type="button"
-              className={`btn-engine-toggle ${imageLoadingMode === "lazy" ? "active" : ""}`}
-              onClick={() => setImageLoadingMode("lazy")}
-              title="Lazy Loading: Defers image network requests until scrolled into view (test in F12 Network tab)"
-            >
-              👁️ Lazy (Scroll)
-            </button>
-            <button
-              type="button"
-              className={`btn-engine-toggle ${imageLoadingMode === "normal" ? "active" : ""}`}
-              onClick={() => setImageLoadingMode("normal")}
-              title="Normal Loading: Eagerly downloads all 15 book cover images at once on load (test in F12 Network tab)"
-            >
-              ⚡ Normal (All)
-            </button>
-          </div>
-        </div>
-
-        <div className="api-toolbar-right">
-          {/* Latency Simulator */}
-          <div className="simulation-item">
-            <label htmlFor="delay-select">Delay:</label>
-            <select
-              id="delay-select"
-              value={simulatedDelay}
-              onChange={(e) => setSimulatedDelay(Number(e.target.value))}
-            >
-              <option value="0">0ms (Instant)</option>
-              <option value="400">400ms (Normal)</option>
-              <option value="1000">1000ms (Slow 3G)</option>
-              <option value="2000">2000ms (Heavy)</option>
-            </select>
-          </div>
-
-          {/* Error Simulator */}
-          <div className="simulation-item">
-            <label htmlFor="error-select">Simulate Error:</label>
-            <select
-              id="error-select"
-              value={simulateError || "none"}
-              onChange={(e) => {
-                const val = e.target.value === "none" ? null : e.target.value;
-                setSimulateError(val);
-                refetchBooks();
-              }}
-            >
-              <option value="none">None (200 OK)</option>
-              <option value="HTTP_500">500 Server Error</option>
-              <option value="NETWORK_ERROR">Network Drop (0)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       {/* DevTools F12 Network Tab Guide & Comparison Banner */}
       <div className="devtools-network-callout" role="region" aria-label="DevTools Network Inspection Guide">
         <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "space-between", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "1.2rem" }} aria-hidden="true">🔬</span>
             <strong>DevTools (F12) Network Tab Comparison:</strong>
-            <span className={`network-mode-pill ${imageLoadingMode}`}>
-              {imageLoadingMode === "lazy" ? "🟢 Lazy Loading Mode" : "⚡ Normal (Eager) Mode"}
-            </span>
+            <div className="api-engine-selector" style={{ margin: 0 }}>
+              <span className="selector-title">Image Loading:</span>
+              <button
+                type="button"
+                className={`btn-engine-toggle ${imageLoadingMode === "lazy" ? "active" : ""}`}
+                onClick={() => setImageLoadingMode("lazy")}
+                title="Lazy Loading: Defers image network requests until scrolled into view (test in F12 Network tab)"
+              >
+                👁️ Lazy (Scroll)
+              </button>
+              <button
+                type="button"
+                className={`btn-engine-toggle ${imageLoadingMode === "normal" ? "active" : ""}`}
+                onClick={() => setImageLoadingMode("normal")}
+                title="Normal Loading: Eagerly downloads all 15 book cover images at once on load (test in F12 Network tab)"
+              >
+                ⚡ Normal (All)
+              </button>
+            </div>
           </div>
           <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
             Open DevTools: press <kbd>F12</kbd> &rarr; <strong>Network</strong> tab &rarr; Filter by <strong>Img</strong>
@@ -157,17 +75,10 @@ function Home() {
         </p>
       </div>
 
-      {/* Welcome Banner - Member fetched via REST API */}
+      {/* Welcome Banner */}
       <div className="welcome-hero">
         <div className="welcome-text">
-          <h2>Vanakkam, {member?.name || "Aravind Kumar"}! 📖</h2>
-          <p>
-            Explore our curated digital repository of classical and contemporary Tamil literature.
-            Check availability, borrow instantly, manage holds, and track your reading journey.
-          </p>
-          <div className="api-subtext">
-            <span>⚡ Member profile loaded via <code>GET /api/members/current</code> using <strong>{apiEngine.toUpperCase()}</strong></span>
-          </div>
+          <h2 style={{ marginBottom: 0 }}>Vanakkam, {member?.name || "Aravind Kumar"}! 📖</h2>
         </div>
         <div className="member-badge-chip">
           {memberLoading ? (
