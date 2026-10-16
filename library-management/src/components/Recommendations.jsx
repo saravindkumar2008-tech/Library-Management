@@ -70,16 +70,13 @@ function Recommendations() {
     <div className="recommendations-section">
       <div className="recommendations-header">
         <div>
-          <h3>✨ Recommended For You (REST API Powered)</h3>
-          <p className="recommendations-subtitle">
-            Curated recommendations fetched dynamically via <code>GET /api/recommendations</code> using <strong>{apiEngine.toUpperCase()}</strong>.
-          </p>
+          <h3>✨ Recommended For You</h3>
         </div>
         <button
           className="btn-refresh-recs"
           onClick={fetchRecommendationsFromApi}
           disabled={loading}
-          title="Re-query API recommendations"
+          title="Refresh recommendations"
         >
           {loading ? "Fetching..." : "🔄 Refresh Recommendations"}
         </button>
@@ -89,7 +86,7 @@ function Recommendations() {
       {loading && (
         <div className="recs-loading-card">
           <Loading
-            message={`Querying recommendation model via REST API (${apiEngine.toUpperCase()})...`}
+            message="Finding books recommended for you..."
             size="sm"
           />
         </div>
