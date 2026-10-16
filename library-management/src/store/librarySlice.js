@@ -64,16 +64,19 @@ export const librarySlice = createSlice({
      * Marks book unavailable, adds to borrowedBooks, tracks due date (14 days), updates member loans count.
      */
     borrowBook: (state, action) => {
-      const { bookId, durationDays = 14, notes = "" } = action.payload || {};
-      const numericId = Number(bookId);
+      const payload = action.payload || {};
+      const rawId = typeof payload === "object" ? (payload.bookId || payload.id) : payload;
+      const durationDays = payload.durationDays || 14;
+      const notes = payload.notes || "";
+      const numericId = Number(rawId);
       const bookIndex = state.books.findIndex(
-        (b) => b.id === numericId || String(b.id) === String(bookId)
+        (b) => b.id === numericId || String(b.id) === String(rawId)
       );
 
       if (bookIndex === -1) {
         state.operationFeedback = {
           type: "error",
-          message: `Book #${bookId} not found in library catalog.`
+          message: `Book #${rawId} not found in library catalog.`
         };
         return;
       }
@@ -111,13 +114,14 @@ export const librarySlice = createSlice({
         ...book,
         available: false,
         borrowDate: todayStr,
+        borrowedDate: todayStr,
         dueDate: dueStr,
         renewalCount: 0,
         maxRenewals: 2,
         notes: notes || "Standard 14-day circulating loan",
         status: "borrowed"
       };
-      state.borrowedBooks.push(borrowEntry);
+      state.borrowedBooks.unshift(borrowEntry);
 
       // Remove from active holds if member had this book on hold
       state.holdRequests = state.holdRequests.filter((h) => String(h.bookId) !== String(book.id));
@@ -175,8 +179,11 @@ export const librarySlice = createSlice({
         author: returnedItem.author,
         category: returnedItem.category,
         year: returnedItem.year,
+        coverImage: returnedItem.coverImage,
         borrowDate: returnedItem.borrowDate,
+        borrowedDate: returnedItem.borrowDate,
         returnDate: formatDate(rDate),
+        returnedDate: formatDate(rDate),
         daysKept,
         rating: Number(rating) || 5,
         notes: notes || "Completed and returned to circulation"

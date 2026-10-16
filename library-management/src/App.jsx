@@ -27,11 +27,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Button from "./components/Button";
 
-// Lazy-loaded Developer Inspector Components
-const RestApiInspector = lazy(() => import("./components/RestApiInspector"));
-const ReduxActionInspector = lazy(() => import("./components/ReduxActionInspector"));
-const TokenInspector = lazy(() => import("./components/TokenInspector"));
-
 // Redux Toolkit Global Store
 import { Provider } from "react-redux";
 import store from "./store";
@@ -220,13 +215,6 @@ function LibraryLayout() {
           </Suspense>
         </ErrorBoundary>
       </main>
-
-      {/* Real-time Developer Inspectors (Lazy Loaded with Suspense) */}
-      <Suspense fallback={null}>
-        <RestApiInspector />
-        <ReduxActionInspector />
-        <TokenInspector />
-      </Suspense>
 
       <Footer />
     </div>

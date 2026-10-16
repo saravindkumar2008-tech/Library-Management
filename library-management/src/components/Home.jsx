@@ -31,7 +31,9 @@ function Home() {
     simulateError,
     setSimulateError,
     refetchBooks,
-    addBook
+    addBook,
+    imageLoadingMode,
+    setImageLoadingMode
   } = useLibrary();
 
   return (
@@ -40,12 +42,12 @@ function Home() {
       <div className="api-control-toolbar">
         <div className="api-toolbar-left">
           <span className="api-pulse-dot"></span>
-          <span className="api-label">REST API Status:</span>
-          <span className="api-badge-online">Active (v1)</span>
+          <span className="api-label">REST API:</span>
+          <span className="api-badge-online">Active</span>
 
           {/* Engine Selector: Axios vs Fetch (Experiment 1 Core Topic) */}
           <div className="api-engine-selector">
-            <span className="selector-title">Client Engine:</span>
+            <span className="selector-title">Client:</span>
             <button
               type="button"
               className={`btn-engine-toggle ${apiEngine === "axios" ? "active" : ""}`}
@@ -67,6 +69,27 @@ function Home() {
               title="Use Native Fetch API with AbortController"
             >
               Fetch
+            </button>
+          </div>
+
+          {/* Image Loading Strategy Selector for F12 Network Tab Demonstration */}
+          <div className="api-engine-selector" style={{ marginLeft: "8px" }}>
+            <span className="selector-title">Image Loading:</span>
+            <button
+              type="button"
+              className={`btn-engine-toggle ${imageLoadingMode === "lazy" ? "active" : ""}`}
+              onClick={() => setImageLoadingMode("lazy")}
+              title="Lazy Loading: Defers image network requests until scrolled into view (test in F12 Network tab)"
+            >
+              👁️ Lazy (Scroll)
+            </button>
+            <button
+              type="button"
+              className={`btn-engine-toggle ${imageLoadingMode === "normal" ? "active" : ""}`}
+              onClick={() => setImageLoadingMode("normal")}
+              title="Normal Loading: Eagerly downloads all 15 book cover images at once on load (test in F12 Network tab)"
+            >
+              ⚡ Normal (All)
             </button>
           </div>
         </div>
@@ -105,6 +128,33 @@ function Home() {
             </select>
           </div>
         </div>
+      </div>
+
+      {/* DevTools F12 Network Tab Guide & Comparison Banner */}
+      <div className="devtools-network-callout" role="region" aria-label="DevTools Network Inspection Guide">
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1.2rem" }} aria-hidden="true">🔬</span>
+            <strong>DevTools (F12) Network Tab Comparison:</strong>
+            <span className={`network-mode-pill ${imageLoadingMode}`}>
+              {imageLoadingMode === "lazy" ? "🟢 Lazy Loading Mode" : "⚡ Normal (Eager) Mode"}
+            </span>
+          </div>
+          <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+            Open DevTools: press <kbd>F12</kbd> &rarr; <strong>Network</strong> tab &rarr; Filter by <strong>Img</strong>
+          </div>
+        </div>
+        <p style={{ margin: "8px 0 0 0", fontSize: "0.86rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          {imageLoadingMode === "lazy" ? (
+            <>
+              <strong>Lazy Loading active:</strong> Initial page load only fetches images for the top books visible in your screen. As you scroll down the page, notice how new image HTTP requests appear dynamically one by one in the F12 Network tab.
+            </>
+          ) : (
+            <>
+              <strong>Normal Loading active:</strong> All 15 book cover images are downloaded immediately in parallel right on initial page load, consuming bandwidth upfront even for books far below the scroll fold.
+            </>
+          )}
+        </p>
       </div>
 
       {/* Welcome Banner - Member fetched via REST API */}

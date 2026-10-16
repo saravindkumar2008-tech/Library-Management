@@ -21,9 +21,8 @@ import {
 } from "../store/librarySlice";
 import { apiConfig } from "../services/apiConfig";
 import { bookService } from "../services/bookService";
-
-// 1. Create the LibraryContext
-export const LibraryContext = createContext(null);
+import { LibraryContext } from "./libraryContextInstance";
+export { LibraryContext };
 
 /**
  * LibraryProvider Component
@@ -74,6 +73,9 @@ export function LibraryProvider({ children }) {
   const setApiEngine = (engine) => apiConfig.setClientType(engine);
   const setSimulatedDelay = (ms) => apiConfig.setSimulatedDelay(ms);
   const setSimulateError = (err) => apiConfig.setSimulateError(err);
+
+  // Image loading strategy: "lazy" (viewport-deferred) vs "normal" (eager)
+  const [imageLoadingMode, setImageLoadingMode] = useState("lazy");
 
   // Filtered books calculated from Redux state and filters
   const filteredBooks = useMemo(() => {
@@ -193,51 +195,61 @@ export function LibraryProvider({ children }) {
 
   // Requirement e: Create and update borrowing records using API operations
   const borrowBook = useCallback(
-    async (bookId, durationDays = 14, notes = "") => {
+    async (bookOrId, durationDays = 14, notes = "") => {
+      const id = (bookOrId && typeof bookOrId === "object") ? (bookOrId.id || bookOrId.bookId) : bookOrId;
       try {
-        await bookService.borrowBookApi({ bookId, durationDays, notes });
+        await bookService.borrowBookApi({ bookId: id, durationDays, notes });
       } catch (err) {
         console.warn("Async borrow API notice:", err);
       }
-      dispatch(reduxBorrowBook({ bookId, durationDays, notes }));
+      dispatch(reduxBorrowBook({ bookId: id, durationDays, notes }));
+      return true;
     },
     [dispatch]
   );
 
   const returnBook = useCallback(
-    async (bookId, rating = 5, notes = "") => {
+    async (bookOrId, rating = 5, notes = "") => {
+      const id = (bookOrId && typeof bookOrId === "object") ? (bookOrId.id || bookOrId.bookId) : bookOrId;
       try {
-        await bookService.returnBookApi(bookId, { rating, notes });
+        await bookService.returnBookApi(id, { rating, notes });
       } catch (err) {
         console.warn("Async return API notice:", err);
       }
-      dispatch(reduxReturnBook({ bookId, rating, notes }));
+      dispatch(reduxReturnBook({ bookId: id, rating, notes }));
+      return true;
     },
     [dispatch]
   );
 
   const renewBook = useCallback(
-    async (bookId, extensionDays = 7, reason = "") => {
+    async (bookOrId, extensionDays = 7, reason = "") => {
+      const id = (bookOrId && typeof bookOrId === "object") ? (bookOrId.id || bookOrId.bookId) : bookOrId;
       try {
-        await bookService.renewBookApi(bookId, { extensionDays });
+        await bookService.renewBookApi(id, { extensionDays });
       } catch (err) {
         console.warn("Async renew API notice:", err);
       }
-      dispatch(reduxRenewBook({ bookId, extensionDays, reason }));
+      dispatch(reduxRenewBook({ bookId: id, extensionDays, reason }));
+      return true;
     },
     [dispatch]
   );
 
   const placeHold = useCallback(
-    (bookId, notes = "") => {
-      dispatch(reduxPlaceHold({ bookId, notes }));
+    (bookOrId, notes = "") => {
+      const id = (bookOrId && typeof bookOrId === "object") ? (bookOrId.id || bookOrId.bookId) : bookOrId;
+      dispatch(reduxPlaceHold({ bookId: id, notes }));
+      return true;
     },
     [dispatch]
   );
 
   const cancelHold = useCallback(
-    (bookId) => {
-      dispatch(reduxCancelHold(bookId));
+    (bookOrId) => {
+      const id = (bookOrId && typeof bookOrId === "object") ? (bookOrId.id || bookOrId.bookId) : bookOrId;
+      dispatch(reduxCancelHold(id));
+      return true;
     },
     [dispatch]
   );
@@ -336,6 +348,10 @@ export function LibraryProvider({ children }) {
     selectedBook,
     openBookDetail,
     closeBookDetail,
+
+    // Image Loading Strategy (Lazy vs Normal for F12 Network inspection)
+    imageLoadingMode,
+    setImageLoadingMode,
 
     // Storage Sync Metadata
     lastSyncedAt

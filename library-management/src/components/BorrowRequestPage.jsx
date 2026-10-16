@@ -99,23 +99,22 @@ export function BorrowRequestPage() {
 
     setSubmitting(true);
 
-    setTimeout(() => {
-      if (isAvailable) {
-        const success = borrowBook(book);
-        setSubmitting(false);
-        if (success) {
-          // Navigate programmatically using useNavigate() to Borrow Confirmation
+    setTimeout(async () => {
+      try {
+        if (isAvailable) {
+          await borrowBook(book.id, formData.loanDuration, `Standard loan (${formData.loanDuration} days)`);
+          setSubmitting(false);
           navigate(`/borrow-confirmation/${book.id}`);
-        }
-      } else {
-        const success = placeHold(book);
-        setSubmitting(false);
-        if (success) {
-          // Navigate programmatically using useNavigate() to Borrow Confirmation
+        } else {
+          placeHold(book.id, "Waitlist hold request");
+          setSubmitting(false);
           navigate(`/borrow-confirmation/${book.id}?type=hold`);
         }
+      } catch (err) {
+        console.error("Borrow request error:", err);
+        setSubmitting(false);
       }
-    }, 350);
+    }, 300);
   };
 
   return (

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { LibraryContext } from "../../context/libraryContextInstance";
 
 /**
  * Category-based rich gradient color palettes & motif patterns
@@ -53,17 +54,23 @@ const DEFAULT_THEME = {
  * OptimizedBookCover Component
  * Performance-optimized responsive book cover with lazy loading, IntersectionObserver support,
  * skeleton placeholder, zero layout shift (aspect-ratio preservation), and full accessibility.
+ * Supports toggling between Lazy Loading (deferred network requests) and Normal Loading (eager fetching).
  */
 export function OptimizedBookCover({
   book,
   size = "md",
   className = "",
   showBadge = true,
-  showText = false
+  showText = false,
+  loadingMode
 }) {
+  const libraryContext = useContext(LibraryContext);
+  const activeMode = loadingMode || libraryContext?.imageLoadingMode || "lazy";
+  const isLazy = activeMode === "lazy";
+
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(!isLazy);
   const containerRef = useRef(null);
 
   const theme = CATEGORY_THEMES[book?.category] || DEFAULT_THEME;
@@ -72,21 +79,33 @@ export function OptimizedBookCover({
   const imageUrl = book?.coverImage || book?.coverUrl || book?.imageUrl;
   const hasExternalImage = Boolean(imageUrl) && !imageError;
 
-  // IntersectionObserver for viewport-aware image lazy loading
+  // Viewport-aware lazy loading vs eager normal loading
   useEffect(() => {
+    if (!isLazy) {
+      setIsVisible(true);
+      return;
+    }
+
     if (!hasExternalImage) return;
 
     if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      // In lazy mode: rootMargin "0px" strictly waits until the card scrolls into the viewport
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               setIsVisible(true);
+              if (typeof window !== "undefined" && window.console && window.console.log) {
+                console.log(
+                  `%c[Network Tab F12] 🖼️ Lazy-loaded book cover on scroll: "${title}" (ID: ${book?.id})`,
+                  "color: #10b981; font-weight: 600;"
+                );
+              }
               observer.disconnect();
             }
           });
         },
-        { rootMargin: "250px" } // Preload 250px before entering viewport
+        { rootMargin: "0px", threshold: 0.05 }
       );
 
       if (containerRef.current) {
@@ -97,7 +116,7 @@ export function OptimizedBookCover({
     } else {
       setIsVisible(true);
     }
-  }, [hasExternalImage, imageUrl]);
+  }, [hasExternalImage, imageUrl, isLazy, title, book?.id]);
 
   const sizeClasses = {
     sm: "book-cover-sm",
@@ -163,8 +182,8 @@ export function OptimizedBookCover({
           <img
             src={imageUrl}
             alt={`Cover art for ${title}`}
-            loading="lazy"
-            decoding="async"
+            loading={isLazy ? "lazy" : "eager"}
+            decoding={isLazy ? "async" : "sync"}
             width={size === "sm" ? 120 : size === "lg" ? 320 : 200}
             height={size === "sm" ? 180 : size === "lg" ? 480 : 300}
             onLoad={() => setImageLoaded(true)}
@@ -318,6 +337,18 @@ export function OptimizedBookCover({
         </span>
         <span style={{ color: "#fbbf24" }}>★ ★ ★ ★ ★</span>
       </div>
+
+      {/* Network Loading Mode Visual Indicator for DevTools Testing */}
+      <span
+        className="cover-network-status-badge"
+        title={
+          isLazy
+            ? "Lazy Mode: Network request deferred until scrolled into viewport"
+            : "Normal Mode: Eagerly fetched on page load"
+        }
+      >
+        {isLazy ? (isVisible ? "🟢 Lazy (In View)" : "⏳ Deferred") : "⚡ Normal"}
+      </span>
     </div>
   );
 }
